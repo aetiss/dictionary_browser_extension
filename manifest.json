@@ -9,11 +9,18 @@
     "content_scripts": [
         {
             "matches": [
-                "*://*.mozilla.org/*"
+                "*://*/*"
             ],
             "js": [
-                "index.js"
+                "content_script.js"
             ]
         }
-    ]
+    ],
+    "browser_action": {
+        "default_icon": {
+            "48": "icons/icons.png"
+        },
+        "default_popup":"browserAction/index.html",
+        "default_title":"English Dictionay"
+    }
 }
