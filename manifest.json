@@ -1,0 +1,19 @@
+{
+    "manifest_version": 1,
+    "name": "Dictionary Browser Extension",
+    "version": "1.0",
+    "description": "Basic English Dictionary lookup addon/extension for Firefox prvoviding meaning of word thats double-clicked selected on a webpage.",
+    "icons": {
+        "48": ""
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.mozilla.org/*"
+            ],
+            "js": [
+                "index.js"
+            ]
+        }
+    ]
+}
