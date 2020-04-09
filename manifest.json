@@ -21,6 +21,6 @@
             "64": "icons/icon_book_64.png"
         },
         "default_popup": "browserAction/index.html",
-        "default_title": "English Dictionay"
+        "default_title": "English Dictionary"
     }
 }
