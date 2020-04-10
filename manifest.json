@@ -6,13 +6,16 @@
     "icons": {
         "64": "icons/icon_book_64.png"
     },
+    "permissions" : [
+        "activeTabs"
+    ],
     "content_scripts": [
         {
             "matches": [
                 "*://*/*"
             ],
             "js": [
-                "content_script.js"
+                "content.js"
             ]
         }
     ],
