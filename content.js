@@ -1,21 +1,19 @@
-function handleResponse(message) {
-  console.log(`Message from the background script:  ${message.response}`);
+function getSelectedText() {
+    var selectedText = "";
+    if (typeof window.getSelection != "undefined") {
+        selectedText = window.getSelection().toString();
+    } 
+    return selectedText;
 }
 
-function handleError(error) {
-  console.log(`Error: ${error}`);
+function handleMessage(request, sender, sendResponse) {
+    if (request.from == "browserAction") {
+        var selectedText = getSelectedText();
+        sendResponse({
+            response: selectedText,
+        });
+    }
 }
 
-function notifyBackgroundPage(selectedText) {
-  var sending = browser.runtime.sendMessage({
-    selectedText: selectedText,
-  });
-  sending.then(handleResponse, handleError);
-}
-
-document.ondblclick = function (e) {
-  const selectedText = window.getSelection && window.getSelection().toString();
-  console.log(selectedText);
-
-  notifyBackgroundPage(selectedText);
-};
+document.ondblclick = getSelectedText;
+browser.runtime.onMessage.addListener(handleMessage);
