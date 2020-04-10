@@ -1,1 +1,4 @@
-document.body.style.border = '5px solid red';
+document.ondblclick = function () {
+  const selectedText = window.getSelection && window.getSelection().toString();
+  console.log(selectedText);
+};
