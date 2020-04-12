@@ -23,14 +23,14 @@ function handleResponse(message) {
 
     getDefinition(message.response, (responseJSON) => {
       results = responseJSON[0].def[0].sseq;
-      let ul = document.createElement('ul');
+      let ol = document.createElement('ol');
       results.forEach((item) => {
         let definitionText = item[0][1]['dt'][0][1];
         let li = document.createElement('li');
-        ul.appendChild(li);
+        ol.appendChild(li);
         li.innerHTML += definitionText;
       });
-      resultText.appendChild(ul);
+      resultText.appendChild(ol);
     });
   }
 }
