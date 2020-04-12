@@ -9,8 +9,9 @@ function getDefinition(keyword, callback) {
   Http.onreadystatechange = () => {
     if (Http.readyState == 4 && Http.status == 200) {
       const data = JSON.parse(Http.responseText);
-      callback(data);
+      return callback(data);
     }
+    return callback(null);
   };
 }
 
@@ -19,13 +20,15 @@ function handleResponse(message) {
   let resultText = document.getElementById('text-result');
   if (message.response.length > 0) {
     keyword.innerHTML = message.response;
-    resultText.innerHTML = '';
-
     getDefinition(message.response, (responseJSON) => {
+      resultText.innerHTML = '';
+      if (!responseJSON) {
+        resultText.innerHTML = 'No result found';
+      }
       results = responseJSON[0].def[0].sseq;
       let ol = document.createElement('ol');
 
-      results.forEach(function (item) {
+      results.forEach((item) => {
         item.forEach((definition) => {
           definition.forEach((meaning) => {
             if (meaning.dt) {
