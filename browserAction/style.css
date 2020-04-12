@@ -14,11 +14,20 @@ body {
 }
 
 .keyword {
+  display: inline-block;
   margin-top: 12px;
   margin-left: 12px;
   font-weight: bold;
   font-style: italic;
   font-size: 16px;
+}
+
+.pos {
+  display: inline-block;
+  margin-top: 12px;
+  margin-left: 6px;
+  font-style: italic;
+  font-size: 12px;
 }
 
 .text-result {
@@ -27,9 +36,11 @@ body {
   color: black;
   font-size: 14px;
 }
+
 li::before {
   color: #808080;
 }
+
 .more-info {
   margin: 14px;
   font-size: 14px;

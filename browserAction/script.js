@@ -16,8 +16,9 @@ function getDefinition(keyword, callback) {
 }
 
 function handleResponse(message) {
-  let keyword = document.getElementById('keyword');
+  let keyword    = document.getElementById('keyword');
   let resultText = document.getElementById('text-result');
+  let pos        = document.getElementById('pos');
   if (message.response.length > 0) {
     keyword.innerHTML = message.response;
     getDefinition(message.response, (responseJSON) => {
@@ -25,7 +26,11 @@ function handleResponse(message) {
       if (!responseJSON) {
         resultText.innerHTML = 'No result found';
       }
-      results = responseJSON[0].def[0].sseq;
+      results      = responseJSON[0].def[0].sseq;
+      actualSearch = responseJSON[0].meta.id;
+      partOfSpeech = responseJSON[0].fl; // functinal label
+      keyword.innerHTML = actualSearch;
+      pos.innerHTML    = partOfSpeech;
       let ol = document.createElement('ol');
 
       results.forEach((item) => {
