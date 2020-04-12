@@ -1,34 +1,36 @@
 body {
-    background-color: #EDFFEA;
-    margin: 0px;
-    padding: 0px;
-    width: 400px;
-    font-family: "Courier New";
+  background-color: #edffea;
+  margin: 0px;
+  padding: 0px;
+  width: 400px;
+  font-family: 'Courier New';
 }
 
 .heading {
-    padding: 12px;
-    font-size: 16px;
-    text-align: center;
-    background-color: #8db1ab;
+  padding: 12px;
+  font-size: 16px;
+  text-align: center;
+  background-color: #8db1ab;
 }
 
 .keyword {
-    margin-top: 12px;
-    margin-left: 12px;
-    font-weight: bold; 
-    font-style: italic;
-    font-size: 16px;
+  margin-top: 12px;
+  margin-left: 12px;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 16px;
 }
 
 .text-result {
-    margin-top:6px;
-    margin-left: 18px;
-    color: black;
-    font-size: 14px;
+  margin-top: 6px;
+  margin-left: 18px;
+  color: black;
+  font-size: 14px;
 }
-
+li::before {
+  color: #808080;
+}
 .more-info {
-    margin:14px;
-    font-size: 14px;
+  margin: 14px;
+  font-size: 14px;
 }

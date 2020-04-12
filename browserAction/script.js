@@ -24,11 +24,17 @@ function handleResponse(message) {
     getDefinition(message.response, (responseJSON) => {
       results = responseJSON[0].def[0].sseq;
       let ol = document.createElement('ol');
-      results.forEach((item) => {
-        let definitionText = item[0][1]['dt'][0][1];
-        let li = document.createElement('li');
-        ol.appendChild(li);
-        li.innerHTML += definitionText;
+
+      results.forEach(function (item) {
+        item.forEach((definition) => {
+          definition.forEach((meaning) => {
+            if (meaning.dt) {
+              let li = document.createElement('li');
+              ol.appendChild(li);
+              li.innerHTML += meaning.dt[0][1];
+            }
+          });
+        });
       });
       resultText.appendChild(ol);
     });
