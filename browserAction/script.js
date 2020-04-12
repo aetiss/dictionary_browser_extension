@@ -1,6 +1,8 @@
 function getDefinition(keyword, callback) {
   const apiKey = '';
   const reqURL = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${keyword}?key=${apiKey}`;
+
+  let data = {};
   // GET request
   const Http = new XMLHttpRequest();
   Http.open('GET', reqURL, true);
@@ -8,10 +10,37 @@ function getDefinition(keyword, callback) {
   // handle response
   Http.onreadystatechange = () => {
     if (Http.readyState == 4 && Http.status == 200) {
-      const data = JSON.parse(Http.responseText);
-      callback(data);
+      if (Http.responseText[0] === '[') {
+        data = {
+          success: true,
+          data: JSON.parse(Http.responseText),
+        };
+      } else {
+        data = {
+          success: false,
+          data: Http.responseText,
+        };
+      }
+      return callback(data);
     }
+    return callback(null);
   };
+}
+
+function formatMeaning(meaning) {
+  meaning = meaning.replace(/{bc}/g, '');
+  meaning = meaning.replace(/{ldquo}/g, '"');
+  meaning = meaning.replace(/{rdquo}/g, '"');
+  meaning = meaning.replace(/{b}/g, '<b>');
+  meaning = meaning.replace(/{\/b}/g, '</b>');
+  meaning = meaning.replace(/{inf}/g, '<sub>');
+  meaning = meaning.replace(/{\/inf}/g, '</sub>');
+  meaning = meaning.replace(/{sup}/g, '<sup>');
+  meaning = meaning.replace(/{\/sup}/g, '</sup>');
+  meaning = meaning.replace(/{it}/g, '<i>');
+  meaning = meaning.replace(/{\/it}/g, '</i>');
+
+  return meaning;
 }
 
 function handleResponse(message) {
@@ -19,19 +48,22 @@ function handleResponse(message) {
   let resultText = document.getElementById('text-result');
   if (message.response.length > 0) {
     keyword.innerHTML = message.response;
-    resultText.innerHTML = '';
-
-    getDefinition(message.response, (responseJSON) => {
-      results = responseJSON[0].def[0].sseq;
+    getDefinition(message.response, (data) => {
+      resultText.innerHTML = '';
+      if (!data.success) {
+        resultText.innerHTML = data.data;
+        return;
+      }
+      results = data.data[0].def[0].sseq;
       let ol = document.createElement('ol');
-
-      results.forEach(function (item) {
+      results.forEach((item) => {
         item.forEach((definition) => {
           definition.forEach((meaning) => {
             if (meaning.dt) {
               let li = document.createElement('li');
               ol.appendChild(li);
-              li.innerHTML += meaning.dt[0][1];
+              let formattedMeaning = formatMeaning(meaning.dt[0][1]);
+              li.innerHTML += formattedMeaning;
             }
           });
         });
