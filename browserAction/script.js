@@ -44,9 +44,9 @@ function formatMeaning(meaning) {
 }
 
 function handleResponse(message) {
-  let keyword    = document.getElementById('keyword');
+  let keyword = document.getElementById('keyword');
   let resultText = document.getElementById('text-result');
-  let pos        = document.getElementById('pos');
+  let pos = document.getElementById('pos');
   if (message.response.length > 0) {
     keyword.innerHTML = message.response;
     getDefinition(message.response, (data) => {
@@ -55,11 +55,12 @@ function handleResponse(message) {
         resultText.innerHTML = data.data;
         return;
       }
-      results      = data[0].def[0].sseq;
+      data = data.data;
+      results = data[0].def[0].sseq;
       actualSearch = data[0].meta.id;
       partOfSpeech = data[0].fl; // functinal label
       keyword.innerHTML = actualSearch;
-      pos.innerHTML    = partOfSpeech;
+      pos.innerHTML = partOfSpeech;
       let ol = document.createElement('ol');
       results.forEach((item) => {
         item.forEach((definition) => {
