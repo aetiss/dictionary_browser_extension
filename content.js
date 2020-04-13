@@ -10,7 +10,7 @@ function handleMessage(request, sender, sendResponse) {
     if (request.from == "browserAction") {
         var selectedText = getSelectedText();
         sendResponse({
-            response: selectedText,
+            keyword: selectedText,
         });
     }
 }

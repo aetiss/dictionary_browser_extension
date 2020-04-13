@@ -2,7 +2,7 @@ function getDefinition(keyword, callback) {
   const apiKey = '';
   const reqURL = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${keyword}?key=${apiKey}`;
 
-  let data = {};
+  let response = {};
   // GET request
   const Http = new XMLHttpRequest();
   Http.open('GET', reqURL, true);
@@ -11,53 +11,37 @@ function getDefinition(keyword, callback) {
   Http.onreadystatechange = () => {
     if (Http.readyState == 4 && Http.status == 200) {
       if (Http.responseText[0] === '[') {
-        data = {
+        response = {
           success: true,
           data: JSON.parse(Http.responseText),
         };
       } else {
-        data = {
+        response = {
           success: false,
           data: Http.responseText,
         };
       }
-      return callback(data);
+      return callback(response);
     }
     return callback(null);
   };
-}
-
-function formatMeaning(meaning) {
-  meaning = meaning.replace(/{bc}/g, '');
-  meaning = meaning.replace(/{ldquo}/g, '"');
-  meaning = meaning.replace(/{rdquo}/g, '"');
-  meaning = meaning.replace(/{b}/g, '<b>');
-  meaning = meaning.replace(/{\/b}/g, '</b>');
-  meaning = meaning.replace(/{inf}/g, '<sub>');
-  meaning = meaning.replace(/{\/inf}/g, '</sub>');
-  meaning = meaning.replace(/{sup}/g, '<sup>');
-  meaning = meaning.replace(/{\/sup}/g, '</sup>');
-  meaning = meaning.replace(/{it}/g, '<i>');
-  meaning = meaning.replace(/{\/it}/g, '</i>');
-
-  return meaning;
 }
 
 function handleResponse(message) {
   let keyword    = document.getElementById('keyword');
   let resultText = document.getElementById('text-result');
   let pos        = document.getElementById('pos');
-  if (message.response.length > 0) {
-    keyword.innerHTML = message.response;
-    getDefinition(message.response, (data) => {
+  if (message.keyword.length > 0) {
+    keyword.innerHTML = message.keyword;
+    getDefinition(message.keyword, (response) => {
       resultText.innerHTML = '';
-      if (!data.success) {
-        resultText.innerHTML = data.data;
+      if (!response.success) {
+        resultText.innerHTML = response.data;
         return;
       }
-      results      = data[0].def[0].sseq;
-      actualSearch = data[0].meta.id;
-      partOfSpeech = data[0].fl; // functinal label
+      results      = response.data[0].def[0].sseq;
+      actualSearch = response.data[0].meta.id;
+      partOfSpeech = response.data[0].fl; // functinal label
       keyword.innerHTML = actualSearch;
       pos.innerHTML    = partOfSpeech;
       let ol = document.createElement('ol');
@@ -91,7 +75,7 @@ function handleError(error) {
     function (tabs) {
       var sender = browser.tabs.sendMessage(tabs[0].id, {
         from: 'browserAction',
-        msg: 'getText',
+        msg : 'getText',
       });
       sender.then(handleResponse, handleError);
     },

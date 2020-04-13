@@ -8,15 +8,14 @@ body {
 
 .heading {
   padding: 12px;
-  font-size: 16px;
   text-align: center;
+  font-size: 16px;
   background-color: #8db1ab;
 }
 
 .keyword {
   display: inline-block;
-  margin-top: 12px;
-  margin-left: 12px;
+  margin: 12px 6px 0px 12px;
   font-weight: bold;
   font-style: italic;
   font-size: 16px;
@@ -24,15 +23,12 @@ body {
 
 .pos {
   display: inline-block;
-  margin-top: 12px;
-  margin-left: 6px;
   font-style: italic;
   font-size: 12px;
 }
 
 .text-result {
-  margin-top: 6px;
-  margin-left: 18px;
+  margin: 8px;
   color: black;
   font-size: 14px;
 }
@@ -42,6 +38,7 @@ li::before {
 }
 
 .more-info {
-  margin: 14px;
+  margin: 8px;
+  text-align: end;
   font-size: 14px;
 }
