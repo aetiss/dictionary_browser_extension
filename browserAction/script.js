@@ -30,8 +30,11 @@ function getDefinition(keyword, callback) {
 function handleResponse(message) {
   let keyword = document.getElementById('keyword');
   let resultText = document.getElementById('text-result');
-  let pos        = document.getElementById('pos');
-  if (message.keyword.length > 0) {
+  let pos = document.getElementById('pos');
+
+  let isKeywordValid = validateKeyword(message.keyword);
+
+  if (message.keyword.length > 0 && isKeywordValid) {
     keyword.innerHTML = message.keyword;
     getDefinition(message.keyword, (response) => {
       resultText.innerHTML = '';
@@ -39,7 +42,7 @@ function handleResponse(message) {
         resultText.innerHTML = response.data;
         return;
       }
-      results      = response.data[0].def[0].sseq;
+      results = response.data[0].def[0].sseq;
       actualSearch = response.data[0].meta.id;
       partOfSpeech = response.data[0].fl; // functinal label
       keyword.innerHTML = actualSearch;
@@ -75,7 +78,7 @@ function handleError(error) {
     function (tabs) {
       var sender = browser.tabs.sendMessage(tabs[0].id, {
         from: 'browserAction',
-        msg : 'getText',
+        msg: 'getText',
       });
       sender.then(handleResponse, handleError);
     },
