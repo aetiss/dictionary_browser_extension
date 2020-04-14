@@ -28,7 +28,7 @@ function getDefinition(keyword, callback) {
 }
 
 function handleResponse(message) {
-  let keyword = document.getElementById('keyword');
+  let keyword    = document.getElementById('keyword');
   let resultText = document.getElementById('text-result');
   let pos        = document.getElementById('pos');
   if (message.keyword.length > 0) {
@@ -43,7 +43,8 @@ function handleResponse(message) {
       actualSearch = response.data[0].meta.id;
       partOfSpeech = response.data[0].fl; // functinal label
       keyword.innerHTML = actualSearch;
-      pos.innerHTML = partOfSpeech;
+      pos.innerHTML     = partOfSpeech;
+      
       let ol = document.createElement('ol');
       results.forEach((item) => {
         item.forEach((definition) => {
@@ -59,6 +60,12 @@ function handleResponse(message) {
       });
       resultText.appendChild(ol);
     });
+  }
+  else {
+    // when the user hasn't double clicked any word
+    keyword.innerHTML    = 'please select a word';
+    pos.innerHTML        = '';
+    resultText.innerHTML = '';
   }
 }
 
