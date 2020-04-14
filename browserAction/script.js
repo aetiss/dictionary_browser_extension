@@ -65,8 +65,8 @@ function handleResponse(message) {
     });
   }
   else {
-    // when the user hasn't double clicked any word
-    keyword.innerHTML    = 'please select a word';
+    // when the user hasn't double clicked any word or sselected more than one word
+    keyword.innerHTML    = 'no/multiple words selected';
     pos.innerHTML        = '';
     resultText.innerHTML = '';
   }

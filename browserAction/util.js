@@ -9,27 +9,14 @@ function formatMeaning(meaning) {
   meaning = meaning.replace(/{\/inf}/g, '</sub>'); // subscript close
   meaning = meaning.replace(/{sup}/g, '<sup>'); // superscript open
   meaning = meaning.replace(/{\/sup}/g, '</sup>'); // superscript close
-  meaning = meaning.replace(/{a_link\|\w+}/g, replace_alink);
-
-  function replace_alink(match) {
-    return match.slice(8, -1);
-  }
+  meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second grouping
 
   return meaning;
 }
 
-const hasWhiteSpace = (word) => /\s/g.test(word);
+const hasWhiteSpace = (word) => /\s+/g.test(word);
 
 const validateKeyword = (keyword) => {
-  if (hasWhiteSpace(keyword)) {
-    let resultText = document.getElementById('text-result');
-    let keywordHtml = document.getElementById('keyword');
-    let pos = document.getElementById('pos');
-    keywordHtml.innerHTML = keyword;
-    resultText.innerHTML = 'Select a single word';
-    pos.innerHTML = '';
-    return false;
-  }
-
-  return true;
+  keyword = (keyword || "").toString().trim();
+  return hasWhiteSpace ? true : false;
 };
