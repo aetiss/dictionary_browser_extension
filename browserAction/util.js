@@ -17,7 +17,7 @@ function formatMeaning(meaning) {
 const hasWhiteSpace = (word) => /\s/g.test(word);
 
 const validateKeyword = (keyword) => {
-  keyword = (keyword || "").trim();
+  keyword = (keyword || '').trim();
   // if hasWhiteSpace i.e., keyword is invalid -> send false
   return hasWhiteSpace(keyword) ? false : true;
 };
