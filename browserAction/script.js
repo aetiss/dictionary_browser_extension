@@ -24,10 +24,8 @@ function getDefinition(keyword, callback) {
       }
       return callback(response);
     }
-    return callback(null);
   };
 }
-
 
 function handleDefinition(response) {
   if (!response.success) {
@@ -36,10 +34,9 @@ function handleDefinition(response) {
   }
   actualSearch = response.data[0].meta.id;
   // cache the new word now
-  localStorage[actualSearch] = JSON.stringify(response);
+  localStorage.setItem(actualSearch, JSON.stringify(response));
   setDefinition(response);
 }
-
 
 function handleResponse(message) {
   let keyword = document.getElementById('keyword');
@@ -51,15 +48,14 @@ function handleResponse(message) {
   if (message.keyword.length > 0 && isKeywordValid) {
     keyword.innerHTML = message.keyword;
     // check if word is already cached
-    if (localStorage.getItem(message.keyword) === null) {
+
+    if (!localStorage.getItem(message.keyword)) {
       getDefinition(message.keyword, handleDefinition);
-    }
-    else {
+    } else {
       // already cached = no need to 'getDefinition' from api
       setDefinition(JSON.parse(localStorage.getItem(message.keyword)));
     }
-  }
-  else {
+  } else {
     // when the user hasn't double clicked any word or sselected more than one word
     keyword.innerHTML = 'no/multiple words selected';
     pos.innerHTML = '';
@@ -67,11 +63,9 @@ function handleResponse(message) {
   }
 }
 
-
 function handleError(error) {
   console.log(`Error: ${error}`);
 }
-
 
 (() => {
   browser.tabs.query(

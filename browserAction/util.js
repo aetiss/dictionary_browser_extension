@@ -11,6 +11,9 @@ function formatMeaning(meaning) {
   meaning = meaning.replace(/{\/sup}/g, '</sup>'); // superscript close
   meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second grouping
 
+  //FIXME: need to capitalize then word and add anchor tag to it
+  meaning = meaning.replace(/{sx|}/g, ''); //synonymous cross-reference
+
   return meaning;
 }
 
@@ -46,5 +49,4 @@ function setDefinition(response) {
     });
   });
   resultText.appendChild(ol);
-
 }
