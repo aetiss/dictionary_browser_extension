@@ -1,6 +1,6 @@
 // api call here
 function getDefinition(keyword, callback) {
-  const apiKey = '';
+  const apiKey = config.API_KEY;
   const reqURL = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${keyword}?key=${apiKey}`;
 
   let response = {};
