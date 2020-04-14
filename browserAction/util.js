@@ -14,9 +14,10 @@ function formatMeaning(meaning) {
   return meaning;
 }
 
-const hasWhiteSpace = (word) => /\s+/g.test(word);
+const hasWhiteSpace = (word) => /\s/g.test(word);
 
 const validateKeyword = (keyword) => {
-  keyword = (keyword || "").toString().trim();
-  return hasWhiteSpace ? true : false;
+  keyword = (keyword || "").trim();
+  // if hasWhiteSpace i.e., keyword is invalid -> send false
+  return hasWhiteSpace(keyword) ? false : true;
 };
