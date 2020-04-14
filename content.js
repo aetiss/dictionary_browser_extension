@@ -1,8 +1,8 @@
 function getSelectedText() {
     if (window.getSelection) {
-        selectedText = window.getSelection().toString();
+        selectedText = window.getSelection().toString().trim();
     } else if (document.getSelection) {
-        selectedText = document.getSelection().toString();
+        selectedText = document.getSelection().toString().trim();
     } else if (document.selection) {
         selectedText = document.selection.createRange().text;
     }
