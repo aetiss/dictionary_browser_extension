@@ -1,3 +1,4 @@
+// api call here
 function getDefinition(keyword, callback) {
   const apiKey = '';
   const reqURL = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${keyword}?key=${apiKey}`;
@@ -27,6 +28,19 @@ function getDefinition(keyword, callback) {
   };
 }
 
+
+function handleDefinition(response) {
+  if (!response.success) {
+    resultText.innerHTML = response.data;
+    return;
+  }
+  actualSearch = response.data[0].meta.id;
+  // cache the new word now
+  localStorage[actualSearch] = JSON.stringify(response);
+  setDefinition(response);
+}
+
+
 function handleResponse(message) {
   let keyword = document.getElementById('keyword');
   let resultText = document.getElementById('text-result');
@@ -36,33 +50,14 @@ function handleResponse(message) {
 
   if (message.keyword.length > 0 && isKeywordValid) {
     keyword.innerHTML = message.keyword;
-    getDefinition(message.keyword, (response) => {
-      resultText.innerHTML = '';
-      if (!response.success) {
-        resultText.innerHTML = response.data;
-        return;
-      }
-      results = response.data[0].def[0].sseq;
-      actualSearch = response.data[0].meta.id;
-      partOfSpeech = response.data[0].fl; // functinal label
-      keyword.innerHTML = actualSearch;
-      pos.innerHTML = partOfSpeech;
-
-      let ol = document.createElement('ol');
-      results.forEach((item) => {
-        item.forEach((definition) => {
-          definition.forEach((meaning) => {
-            if (meaning.dt) {
-              let li = document.createElement('li');
-              ol.appendChild(li);
-              let formattedMeaning = formatMeaning(meaning.dt[0][1]);
-              li.innerHTML += formattedMeaning;
-            }
-          });
-        });
-      });
-      resultText.appendChild(ol);
-    });
+    // check if word is already cached
+    if (localStorage.getItem(message.keyword) === null) {
+      getDefinition(message.keyword, handleDefinition);
+    }
+    else {
+      // already cached = no need to 'getDefinition' from api
+      setDefinition(JSON.parse(localStorage.getItem(message.keyword)));
+    }
   }
   else {
     // when the user hasn't double clicked any word or sselected more than one word
@@ -72,9 +67,11 @@ function handleResponse(message) {
   }
 }
 
+
 function handleError(error) {
   console.log(`Error: ${error}`);
 }
+
 
 (() => {
   browser.tabs.query(
