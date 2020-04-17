@@ -1,5 +1,5 @@
 function formatMeaning(meaning) {
-  meaning = meaning.replace(/{bc}/g, ''); // bold colon and a space
+  meaning = meaning.replace(/{bc}/g, ':'); // bold colon and a space
   meaning = meaning.replace(/{ldquo}|{rdquo}/g, '"'); // double quotes
   meaning = meaning.replace(/{b}/g, '<b>'); // bold open
   meaning = meaning.replace(/{\/b}/g, '</b>'); // bold close
@@ -9,10 +9,15 @@ function formatMeaning(meaning) {
   meaning = meaning.replace(/{\/inf}/g, '</sub>'); // subscript close
   meaning = meaning.replace(/{sup}/g, '<sup>'); // superscript open
   meaning = meaning.replace(/{\/sup}/g, '</sup>'); // superscript close
-  meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second grouping
+  meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second capture group
 
-  //FIXME: need to capitalize then word and add anchor tag to it
-  meaning = meaning.replace(/{sx|}/g, ''); //synonymous cross-reference
+  // FIXED: need to capitalize then word and add anchor tag to it
+  meaning = meaning.replace(/({sx\|)(\w+)(\|\|[\d]*})/g, sxReplacer); //synonymous cross-reference
+
+  // return uppercase of the second capture group [not an anchor tag]
+  function sxReplacer(match, p1, p2, p3) {
+    return p2.toUpperCase();
+  };
 
   return meaning;
 }
@@ -23,30 +28,67 @@ const validateKeyword = (keyword) => {
   return hasWhiteSpace(keyword) ? false : true;
 };
 
-function setDefinition(response) {
+function setDefinition(response, hasHomograph) {
+  // received response is an array of objects now
   let keyword = document.getElementById('keyword');
-  let resultText = document.getElementById('text-result');
   let pos = document.getElementById('pos');
-  results = response.data[0].def[0].sseq;
-  actualSearch = response.data[0].meta.id;
-  console.log(`able to parse JSON - ${actualSearch}`);
-  partOfSpeech = response.data[0].fl; // functinal label
-  keyword.innerHTML = actualSearch;
-  resultText.innerHTML = '';
-  pos.innerHTML = partOfSpeech;
+  let resultText = document.getElementById('text-result');
 
-  let ol = document.createElement('ol');
-  results.forEach((item) => {
-    item.forEach((definition) => {
-      definition.forEach((meaning) => {
-        if (meaning.dt) {
+  // base heading [keyword and pos at the top of the pop-up]
+  let actualWord = response[0].meta.id;
+  let partOfSpeech = response[0].fl;
+
+  // removing the ending colon and digit :1, :2, :3
+  keyword.innerHTML = actualWord.replace(/:\d/g, '');
+  pos.innerHTML = partOfSpeech;
+  resultText.innerHTML = '';
+  // if not homograph, then go through the first element only
+  // else go through all elements one by one
+  if (!hasHomograph) {
+    element = response[0];
+    element.def.forEach((def) => {
+      if (def.hasOwnProperty('vd')) {
+        let vd = document.createElement('div');
+        vd.classList.add('no-space');
+        vd.innerHTML = `<i>${def.vd}</i>`;
+        resultText.appendChild(vd);
+      }
+      let ol = document.createElement('ol');
+      def.sseq.forEach((sseq) => {
+        sseq.forEach((item) => {
           let li = document.createElement('li');
+          let formattedMeaning = formatMeaning(item[1].dt[0][1]);
+          li.innerHTML = formattedMeaning;
           ol.appendChild(li);
-          let formattedMeaning = formatMeaning(meaning.dt[0][1]);
-          li.innerHTML += formattedMeaning;
-        }
+        });
       });
+      resultText.appendChild(ol);
     });
-  });
-  resultText.appendChild(ol);
+  } else {
+    response.forEach((element, index) => {
+      if (element.hasOwnProperty('hom')) {
+        let entry = document.createElement('p');
+        entry.innerHTML = `<i>entry ${index + 1}</i>`;
+        resultText.appendChild(entry);
+        element.def.forEach((def) => {
+          if (def.hasOwnProperty('vd')) {
+            let vd = document.createElement('div');
+            vd.classList.add('no-space');
+            vd.innerHTML = `<i>-\t${def.vd}</i>`;
+            resultText.appendChild(vd);
+          }
+          let ol = document.createElement('ol');
+          def.sseq.forEach((sseq) => {
+            sseq.forEach((item) => {
+              let li = document.createElement('li');
+              let formattedMeaning = formatMeaning(item[1].dt[0][1]);
+              li.innerHTML = formattedMeaning;
+              ol.appendChild(li);
+            });
+          });
+          resultText.appendChild(ol);
+        });
+      }
+    });
+  }
 }

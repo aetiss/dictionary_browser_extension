@@ -22,44 +22,53 @@ function getDefinition(keyword, callback) {
           data: Http.responseText,
         };
       }
-      return callback(response);
+      return callback(response, keyword);
     }
   };
 }
 
-function handleDefinition(response) {
+function handleDefinition(response, keyword) {
   if (!response.success) {
-    resultText.innerHTML = response.data;
+    document.getElementById('keyword').innerHTML = 'Sorry';
+    document.getElementById('pos').innerHTML = '';
+    document.getElementById('text-result').innerHTML = response.data;
     return;
   }
-  actualSearch = response.data[0].meta.id;
+
+  // check if word has homographs/multiple senses
+  let hasHomograph = false;
+  if (response.data[0].hasOwnProperty('hom'))
+    hasHomograph = true;
+
+  // actualSearch = response.data[0].meta.id;
   // cache the new word now
-  localStorage.setItem(actualSearch, JSON.stringify(response));
-  setDefinition(response);
+  // localStorage.setItem(actualSearch, JSON.stringify(response));
+  // localStorage.setItem(keyword, JSON.stringify(response));
+  setDefinition(response.data, hasHomograph);
 }
 
 function handleResponse(message) {
   let keyword = document.getElementById('keyword');
-  let resultText = document.getElementById('text-result');
   let pos = document.getElementById('pos');
+  let resultText = document.getElementById('text-result');
 
   let isKeywordValid = validateKeyword(message.keyword);
 
   if (message.keyword.length > 0 && isKeywordValid) {
     keyword.innerHTML = message.keyword;
+    getDefinition(message.keyword, handleDefinition);
     // check if word is already cached
-
-    if (!localStorage.getItem(message.keyword)) {
-      getDefinition(message.keyword, handleDefinition);
-    } else {
-      // already cached = no need to 'getDefinition' from api
-      setDefinition(JSON.parse(localStorage.getItem(message.keyword)));
-    }
+    //   if (!localStorage.getItem(message.keyword)) {
+    //     getDefinition(message.keyword, handleDefinition);
+    //   } else {
+    //     // already cached = no need to 'getDefinition' from api
+    //     setDefinition(JSON.parse(localStorage.getItem(message.keyword)));
+    //   }
   } else {
     // when the user hasn't double clicked any word or sselected more than one word
-    keyword.innerHTML = 'no/multiple words selected';
+    keyword.innerHTML = 'Sorry';
     pos.innerHTML = '';
-    resultText.innerHTML = '';
+    resultText.innerHTML = '&nbsp&nbspno/multiple words selected';
   }
 }
 
