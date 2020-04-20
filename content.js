@@ -1,24 +1,24 @@
-function getSelectedText() {
-    if (window.getSelection) {
-        selectedText = window.getSelection().toString().trim();
-    } else if (document.getSelection) {
-        selectedText = document.getSelection().toString().trim();
-    } else if (document.selection) {
-        selectedText = document.selection.createRange().text;
-    }
+const selectText = () => window.getSelection().toString().trim();
 
-    return selectedText;
-}
+const getSelectedText = () => {
+  let selectedText = '';
+  if (window.getSelection || document.getSelection) {
+    selectedText = selectText();
+  } else if (document.selection) {
+    selectedText = document.selection.createRange().text;
+  }
+  return selectedText;
+};
 
-function handleMessage(request, sender, sendResponse) {
-    if (request.from == 'browserAction') {
-        selectedText = getSelectedText();
-        sendResponse({
-            keyword: selectedText,
-        });
-    }
-}
+const handleMessage = (request, sender, sendResponse) => {
+  if (request.from == 'browserAction') {
+    selectedText = getSelectedText();
+    sendResponse({
+      keyword: selectedText,
+    });
+  }
+};
 
-var selectedText = ''
+var selectedText = '';
 document.ondblclick = getSelectedText;
 browser.runtime.onMessage.addListener(handleMessage);
