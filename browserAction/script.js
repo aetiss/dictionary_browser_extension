@@ -30,9 +30,7 @@ function getDefinition(keyword, callback) {
 
 async function handleDefinition(response, keyword) {
   if (!response.success) {
-    document.getElementById('keyword').innerHTML = 'Sorry';
-    document.getElementById('pos').innerHTML = '';
-    document.getElementById('text-result').innerHTML = response.data;
+    setMsg(response.data);
     return;
   }
 
@@ -41,52 +39,39 @@ async function handleDefinition(response, keyword) {
   if (response.data[0].hasOwnProperty('hom')) hasHomograph = true;
 
   const newRecentWord = {
-    originalSearch: keyword,
+    originalSearch: keyword.toLowerCase(),
     actualSearch: response.data[0].meta.id,
     definition: response.data,
   };
-  let store = {};
-  store = await LocalStorage.get('recentWords');
 
-  if (Object.keys('store').length === 0) {
-    store = { recentWords: [] };
-  }
-  let foundIndex = store['recentWords'].findIndex(
-    (word) => word.originalSearch === keyword,
-  );
-  if (foundIndex === -1) {
-    store['recentWords'].push(newRecentWord);
-    LocalStorage.set(store);
-  }
-
+  // add new word and its definition to cache
+  let store = await LocalStorage.get('recentWords');
+  store['recentWords'].push(newRecentWord);
+  LocalStorage.set(store);
   setDefinition(response.data, hasHomograph);
 }
 
 async function handleResponse(message) {
   let keyword = document.getElementById('keyword');
-  let pos = document.getElementById('pos');
-  let resultText = document.getElementById('text-result');
 
   let isKeywordValid = validateKeyword(message.keyword);
 
   if (message.keyword.length > 0 && isKeywordValid) {
     keyword.innerHTML = message.keyword;
-    getDefinition(message.keyword, handleDefinition);
-    let store = {};
-    store = await LocalStorage.get('recentWords');
-    if (Object.keys('store').length == 0) {
+    let store = await LocalStorage.get('recentWords');
+    if (Object.keys(store).length == 0) {
       store = { recentWords: [] };
     }
     console.log('store', store);
     let foundWord = null;
-
     store['recentWords'].forEach((word) => {
-      if (word.originalSearch === message.keyword) {
+      if (word.originalSearch === message.keyword.toLowerCase()) {
         foundWord = word;
       }
     });
     // check if word is already cached
     if (!foundWord) {
+      // not cached = getDefinition API call
       getDefinition(message.keyword, handleDefinition);
     } else {
       // already cached = no need to 'getDefinition' from api
@@ -94,10 +79,14 @@ async function handleResponse(message) {
     }
   } else {
     // when the user hasn't double clicked any word or selected more than one word
-    keyword.innerHTML = 'Sorry';
-    pos.innerHTML = '';
-    resultText.innerHTML = '&nbsp&nbsp No/multiple words selected';
+    setMsg('&nbsp&nbsp No/multiple words selected');
   }
+}
+
+function setMsg(errMsg) {
+  document.getElementById('keyword').innerHTML = 'Sorry';
+  document.getElementById('pos').innerHTML = '';
+  document.getElementById('text-result').innerHTML = errMsg;
 }
 
 function handleError(error) {
