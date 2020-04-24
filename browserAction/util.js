@@ -12,7 +12,7 @@ function formatMeaning(meaning) {
   meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second capture group
 
   // FIXED: need to capitalize then word and add anchor tag to it
-  meaning = meaning.replace(/({sx\|)(\w+)(\|\|[\d]*})/g, sxReplacer); //synonymous cross-reference
+  meaning = meaning.replace(/({sx\|)([\w+\s+]*)(\|\|[\d]*})/g, sxReplacer); //synonymous cross-reference
 
   // return uppercase of the second capture group [not an anchor tag]
   function sxReplacer(match, p1, p2, p3) {
@@ -54,21 +54,28 @@ function setDefinition(response, hasHomograph) {
         resultText.appendChild(vd);
       }
       let ol = document.createElement('ol');
-      def.sseq.forEach((sseq) => {
-        sseq.forEach((item) => {
-          let li = document.createElement('li');
-          let formattedMeaning = formatMeaning(item[1].dt[0][1]);
-          li.innerHTML = formattedMeaning;
-          ol.appendChild(li);
+      def.sseq.forEach((sseq, sseqIndex) => {
+        console.log(`sseq no. ${sseqIndex + 1}`);
+        sseq.forEach((item, itemIndex) => {
+          if (item[1].hasOwnProperty('dt')) {
+            let li = document.createElement('li');
+            console.log(`\titem no. ${itemIndex + 1}`, item[1].dt[0][1]);
+            let formattedMeaning = formatMeaning(item[1].dt[0][1]);
+            li.innerHTML = formattedMeaning;
+            ol.appendChild(li);
+          }
         });
       });
       resultText.appendChild(ol);
     });
   } else {
-    response.forEach((element, index) => {
+    // using 'every' to break after first non 'hom' element is found
+    response.every((element, index) => {
       if (element.hasOwnProperty('hom')) {
+        console.log(`homograph number ${index + 1}`);
         let entry = document.createElement('p');
-        entry.innerHTML = `<i>entry ${index + 1}</i>`;
+        let newPOS = element.fl;
+        entry.innerHTML = `<i>entry ${index + 1}</i> :${newPOS}`;
         resultText.appendChild(entry);
         element.def.forEach((def) => {
           if (def.hasOwnProperty('vd')) {
@@ -78,16 +85,24 @@ function setDefinition(response, hasHomograph) {
             resultText.appendChild(vd);
           }
           let ol = document.createElement('ol');
-          def.sseq.forEach((sseq) => {
-            sseq.forEach((item) => {
-              let li = document.createElement('li');
-              let formattedMeaning = formatMeaning(item[1].dt[0][1]);
-              li.innerHTML = formattedMeaning;
-              ol.appendChild(li);
+          def.sseq.forEach((sseq, sseqIndex) => {
+            console.log(`sseq no. ${sseqIndex + 1}`);
+            sseq.forEach((item, itemIndex) => {
+              if (item[1].hasOwnProperty('dt')) {
+                let li = document.createElement('li');
+                console.log(`\titem no. ${itemIndex + 1}`, item[1].dt[0][1]);
+                let formattedMeaning = formatMeaning(item[1].dt[0][1]);
+                li.innerHTML = formattedMeaning;
+                ol.appendChild(li);
+              }
             });
           });
           resultText.appendChild(ol);
         });
+        return true;
+      }
+      else {
+        return false;
       }
     });
   }

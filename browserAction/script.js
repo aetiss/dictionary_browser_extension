@@ -42,12 +42,14 @@ async function handleDefinition(response, keyword) {
     originalSearch: keyword.toLowerCase(),
     actualSearch: response.data[0].meta.id,
     definition: response.data,
+    hasHomograph: hasHomograph,
   };
 
   // add new word and its definition to cache
   let store = await LocalStorage.get('recentWords');
   store['recentWords'].push(newRecentWord);
   LocalStorage.set(store);
+  console.log('after caching', store);
   setDefinition(response.data, hasHomograph);
 }
 
@@ -61,8 +63,10 @@ async function handleResponse(message) {
     let store = await LocalStorage.get('recentWords');
     if (Object.keys(store).length == 0) {
       store = { recentWords: [] };
+      LocalStorage.set(store);
     }
-    console.log('store', store);
+    console.log('initial store', store);
+    // checking for 'keyword' in recentWords
     let foundWord = null;
     store['recentWords'].forEach((word) => {
       if (word.originalSearch === message.keyword.toLowerCase()) {
@@ -75,7 +79,7 @@ async function handleResponse(message) {
       getDefinition(message.keyword, handleDefinition);
     } else {
       // already cached = no need to 'getDefinition' from api
-      setDefinition(foundWord.definition);
+      setDefinition(foundWord.definition, foundWord.hasHomograph);
     }
   } else {
     // when the user hasn't double clicked any word or selected more than one word
