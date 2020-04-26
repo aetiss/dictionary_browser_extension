@@ -17,7 +17,7 @@ function formatMeaning(meaning) {
   // return uppercase of the second capture group [not an anchor tag]
   function sxReplacer(match, p1, p2, p3) {
     return p2.toUpperCase();
-  };
+  }
 
   return meaning;
 }
@@ -31,13 +31,26 @@ const validateKeyword = (keyword) => {
 function setDefinition(response, hasHomograph) {
   // received response is an array of objects now
   let keyword = document.getElementById('keyword');
+  let keyContainer = document.getElementById('key-container');
+  let soundButton = document.createElement('button');
+  let audioSrc = document.getElementById('pronunciation');
+  let audio = document.getElementById('pronunciation');
   let pos = document.getElementById('pos');
   let resultText = document.getElementById('text-result');
-
+  let audioUrl = 'https://media.merriam-webster.com/soundc11';
   // base heading [keyword and pos at the top of the pop-up]
   let actualWord = response[0].meta.id;
   let partOfSpeech = response[0].fl;
-
+  let audioFile = response[0].hwi.prs[0].sound.audio;
+  console.log('audioSrc::default', audioSrc.src);
+  audioUrl = `${audioUrl}/${audioFile.charAt(0)}/${audioFile}.wav`;
+  console.log('audioUrl', audioUrl);
+  audioSrc = audioUrl;
+  soundButton.innerHTML = 'Play';
+  keyContainer.appendChild(soundButton);
+  soundButton.onclick = () => {
+    audio.play();
+  };
   // removing the ending colon and digit :1, :2, :3
   keyword.innerHTML = actualWord.replace(/:\d/g, '');
   pos.innerHTML = partOfSpeech;
@@ -59,7 +72,7 @@ function setDefinition(response, hasHomograph) {
         sseq.forEach((item, itemIndex) => {
           if (item[1].hasOwnProperty('dt')) {
             let li = document.createElement('li');
-            console.log(`\titem no. ${itemIndex + 1}`, item[1].dt[0][1]);
+            // console.log(`\titem no. ${itemIndex + 1}`, item[1].dt[0][1]);
             let formattedMeaning = formatMeaning(item[1].dt[0][1]);
             li.innerHTML = formattedMeaning;
             ol.appendChild(li);
@@ -72,7 +85,7 @@ function setDefinition(response, hasHomograph) {
     // using 'every' to break after first non 'hom' element is found
     response.every((element, index) => {
       if (element.hasOwnProperty('hom')) {
-        console.log(`homograph number ${index + 1}`);
+        // console.log(`homograph number ${index + 1}`);
         let entry = document.createElement('p');
         let newPOS = element.fl;
         entry.innerHTML = `<i>entry ${index + 1}</i> :${newPOS}`;
@@ -90,7 +103,7 @@ function setDefinition(response, hasHomograph) {
             sseq.forEach((item, itemIndex) => {
               if (item[1].hasOwnProperty('dt')) {
                 let li = document.createElement('li');
-                console.log(`\titem no. ${itemIndex + 1}`, item[1].dt[0][1]);
+                // console.log(`\titem no. ${itemIndex + 1}`, item[1].dt[0][1]);
                 let formattedMeaning = formatMeaning(item[1].dt[0][1]);
                 li.innerHTML = formattedMeaning;
                 ol.appendChild(li);
@@ -100,8 +113,7 @@ function setDefinition(response, hasHomograph) {
           resultText.appendChild(ol);
         });
         return true;
-      }
-      else {
+      } else {
         return false;
       }
     });
