@@ -47,3 +47,14 @@ li::before {
   text-align: end;
   font-size: 14px;
 }
+
+.icon-button {
+  height: 20px;
+  width: 20px;
+  background-image: url(../icons/icon_speaker.svg);
+  background-repeat: no-repeat;
+  cursor: pointer;
+  overflow: hidden;
+  border: none;
+  outline: none;
+}
