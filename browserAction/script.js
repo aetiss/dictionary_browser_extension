@@ -47,7 +47,11 @@ async function handleDefinition(response, keyword) {
 
   // add new word and its definition to cache
   let store = await LocalStorage.get('recentWords');
-  store['recentWords'].push(newRecentWord);
+  // check the limit of cached words [limit = 20]
+  if (store['recentWords'].length == 20) {
+    store['recentWords'].pop();
+  }
+  store['recentWords'].unshift(newRecentWord);
   LocalStorage.set(store);
   console.log('after caching', store);
   setDefinition(response.data, hasHomograph);
