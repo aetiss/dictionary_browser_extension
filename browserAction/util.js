@@ -63,10 +63,11 @@ async function setCache(keyword, response, hasHomograph) {
     definition: response,
     hasHomograph: hasHomograph,
   };
-  // add new word and its definition to cache
+  // fetch recentWords from LocalStorage
   let store = await LocalStorage.get('recentWords');
   // check the limit of cached words [limit = 20]
   if (store['recentWords'].length >= 20) store['recentWords'].pop();
+  // add new word and its definition to cache
   store['recentWords'].unshift(newRecentWord);
   LocalStorage.set(store);
 }

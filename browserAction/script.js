@@ -33,7 +33,6 @@ async function handleDefinition(keyword, response) {
     setMsg(response.data);
     return;
   }
-
   // check if word has homographs/multiple senses
   let hasHomograph = false;
   if (response.data[0].hasOwnProperty('hom')) hasHomograph = true;
@@ -48,17 +47,13 @@ async function handleResponse(message) {
 
   if (message.keyword.length > 0 && isKeywordValid) {
     keyword.innerHTML = message.keyword;
-
     let foundWord = await checkCache(message.keyword);
-    console.log(`response foundWord - ${foundWord}`);
     // set definition if cache returned not null
-    if (foundWord) {
-      setDefinition(foundWord.definition, foundWord.hasHomograph);
-    } else {
-      getDefinition(message.keyword, handleDefinition);
-    }
+    if (foundWord) setDefinition(foundWord.definition, foundWord.hasHomograph);
+    else getDefinition(message.keyword, handleDefinition);
+
   } else {
-    // when the user hasn't double clicked any word or selected more than one word
+    // invalid or no keyword selected
     setMsg('&nbsp&nbsp No/multiple words selected');
   }
 }
