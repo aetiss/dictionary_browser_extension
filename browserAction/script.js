@@ -1,7 +1,7 @@
 const LocalStorage = window.browser.storage.local;
 
 // api call here
-function getDefinition(keyword, callback) {
+function getDefinition(keyword, handleDefinition) {
   const apiKey = config.API_KEY;
   const reqURL = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${keyword}?key=${apiKey}`;
   let response = {};
@@ -23,12 +23,12 @@ function getDefinition(keyword, callback) {
           data: Http.responseText,
         };
       }
-      return callback(response, keyword);
+      return handleDefinition(keyword, response);
     }
   };
 }
 
-async function handleDefinition(response, keyword) {
+async function handleDefinition(keyword, response) {
   if (!response.success) {
     setMsg(response.data);
     return;
@@ -37,22 +37,7 @@ async function handleDefinition(response, keyword) {
   // check if word has homographs/multiple senses
   let hasHomograph = false;
   if (response.data[0].hasOwnProperty('hom')) hasHomograph = true;
-
-  const newRecentWord = {
-    originalSearch: keyword.toLowerCase(),
-    actualSearch: response.data[0].meta.id,
-    definition: response.data,
-    hasHomograph: hasHomograph,
-  };
-
-  // add new word and its definition to cache
-  let store = await LocalStorage.get('recentWords');
-  // check the limit of cached words [limit = 20]
-  if (store['recentWords'].length >= 20) {
-    store['recentWords'].pop();
-  }
-  store['recentWords'].unshift(newRecentWord);
-  LocalStorage.set(store);
+  await setCache(keyword, response.data, hasHomograph);
   setDefinition(response.data, hasHomograph);
 }
 
@@ -63,25 +48,14 @@ async function handleResponse(message) {
 
   if (message.keyword.length > 0 && isKeywordValid) {
     keyword.innerHTML = message.keyword;
-    let store = await LocalStorage.get('recentWords');
-    if (Object.keys(store).length == 0) {
-      store = { recentWords: [] };
-      LocalStorage.set(store);
-    }
-    // checking for 'keyword' in recentWords
-    let foundWord = null;
-    store['recentWords'].forEach((word) => {
-      if (word.originalSearch === message.keyword.toLowerCase()) {
-        foundWord = word;
-      }
-    });
-    // check if word is already cached
-    if (!foundWord) {
-      // not cached = getDefinition API call
-      getDefinition(message.keyword, handleDefinition);
-    } else {
-      // already cached = no need to 'getDefinition' from api
+
+    let foundWord = await checkCache(message.keyword);
+    console.log(`response foundWord - ${foundWord}`);
+    // set definition if cache returned not null
+    if (foundWord) {
       setDefinition(foundWord.definition, foundWord.hasHomograph);
+    } else {
+      getDefinition(message.keyword, handleDefinition);
     }
   } else {
     // when the user hasn't double clicked any word or selected more than one word

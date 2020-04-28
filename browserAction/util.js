@@ -1,5 +1,5 @@
 function formatMeaning(meaning) {
-  meaning = meaning.replace(/{bc}/g, ':'); // bold colon and a space
+  meaning = meaning.replace(/{bc}/g, ''); // bold colon and a space
   meaning = meaning.replace(/{ldquo}|{rdquo}/g, '"'); // double quotes
   meaning = meaning.replace(/{b}/g, '<b>'); // bold open
   meaning = meaning.replace(/{\/b}/g, '</b>'); // bold close
@@ -10,8 +10,6 @@ function formatMeaning(meaning) {
   meaning = meaning.replace(/{sup}/g, '<sup>'); // superscript open
   meaning = meaning.replace(/{\/sup}/g, '</sup>'); // superscript close
   meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second capture group
-
-  // FIXED: need to capitalize then word and add anchor tag to it
   meaning = meaning.replace(/({sx\|)([\w+\s+]*)(\|\|[\d]*})/g, sxReplacer); //synonymous cross-reference
 
   // return uppercase of the second capture group [not an anchor tag]
@@ -29,13 +27,48 @@ const validateKeyword = (keyword) => {
 };
 
 function getSubDirectory(audioFile) {
-  const bix = RegExp('^bix');
-  const gg = RegExp('^gg');
-  const number = RegExp('^[0-9!_]');
+  const bix = /^bix/;
+  const gg = /^gg/;
+  const number = /^[0-9\W]/;
   if (bix.test(audioFile)) return 'bix';
   else if (gg.test(audioFile)) return 'gg';
   else if (number.test(audioFile)) return 'number';
   else return audioFile.charAt(0);
+}
+
+async function checkCache(keyword) {
+  // fetching recentWords from LocalStorage
+  let store = {};
+  store = await LocalStorage.get('recentWords');
+  if (Object.keys(store).length == 0) {
+    store = { recentWords: [] };
+    LocalStorage.set(store);
+  }
+  // checking if 'keyword' exist in recentWords
+  let foundWord = null;
+  store['recentWords'].some((word) => {
+    if (word.originalSearch === keyword.toLowerCase()) {
+      foundWord = word;
+      // breaking after finding the keyword
+      return true;
+    }
+  });
+  return foundWord;
+}
+
+async function setCache(keyword, response, hasHomograph) {
+  const newRecentWord = {
+    originalSearch: keyword.toLowerCase(),
+    actualSearch: response[0].meta.id,
+    definition: response,
+    hasHomograph: hasHomograph,
+  };
+  // add new word and its definition to cache
+  let store = await LocalStorage.get('recentWords');
+  // check the limit of cached words [limit = 20]
+  if (store['recentWords'].length >= 20) store['recentWords'].pop();
+  store['recentWords'].unshift(newRecentWord);
+  LocalStorage.set(store);
 }
 
 function setDefinition(response, hasHomograph) {
@@ -77,8 +110,8 @@ function setDefinition(response, hasHomograph) {
         resultText.appendChild(vd);
       }
       let ol = document.createElement('ol');
-      def.sseq.forEach((sseq, sseqIndex) => {
-        sseq.forEach((item, itemIndex) => {
+      def.sseq.forEach((sseq) => {
+        sseq.forEach((item) => {
           if (item[1].hasOwnProperty('dt')) {
             let li = document.createElement('li');
             let formattedMeaning = formatMeaning(item[1].dt[0][1]);
@@ -105,8 +138,8 @@ function setDefinition(response, hasHomograph) {
             resultText.appendChild(vd);
           }
           let ol = document.createElement('ol');
-          def.sseq.forEach((sseq, sseqIndex) => {
-            sseq.forEach((item, itemIndex) => {
+          def.sseq.forEach((sseq) => {
+            sseq.forEach((item) => {
               if (item[1].hasOwnProperty('dt')) {
                 let li = document.createElement('li');
                 let formattedMeaning = formatMeaning(item[1].dt[0][1]);
