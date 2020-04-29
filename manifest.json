@@ -4,7 +4,7 @@
     "version": "1.0",
     "description": "Basic English Dictionary lookup addon/extension for Firefox providing meaning of word thats double-clicked selected on a webpage.",
     "icons": {
-        "64": "icons/icon_book_64.png"
+        "64": "assets/icon_book_64.png"
     },
     "permissions": [
         "activeTab",
@@ -22,7 +22,7 @@
     ],
     "browser_action": {
         "default_icon": {
-            "64": "icons/icon_book_64.png"
+            "64": "assets/icon_book_64.png"
         },
         "default_popup": "browserAction/index.html",
         "default_title": "English Dictionary"
