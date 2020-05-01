@@ -10,11 +10,16 @@ function formatMeaning(meaning) {
   meaning = meaning.replace(/{sup}/g, '<sup>'); // superscript open
   meaning = meaning.replace(/{\/sup}/g, '</sup>'); // superscript close
   meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second capture group
-  meaning = meaning.replace(/({sx\|)([\w+\s+]*)(\|\|[\d]*})/g, sxReplacer); //synonymous cross-reference
+  meaning = meaning.replace(/{sx\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)\|([\w]*)}/g, sxReplacer); //synonymous cross-reference
+  // dx_def, dxt, dlink
+  meaning = meaning.replace(/({dx_def})(.*)({\/dx_def})/g, '[$2]');
+  meaning = meaning.replace(/({dxt)\|([\w\s]*)([:\d]*)\|(.*)\|([illustraion|table|\d?])}/g, '<i><a href=#>$2</a><\i>');
+  meaning = meaning.replace(/({d_link)\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)}/g, '$2');
+  
 
   // return uppercase of the second capture group [not an anchor tag]
-  function sxReplacer(match, p1, p2, p3) {
-    return p2.toUpperCase();
+  function sxReplacer(match, p1, p2, p3, p4, p5) {
+    return `<a href=#>:${p1.toUpperCase()}</a>`;
   }
 
   return meaning;
