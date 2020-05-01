@@ -14,7 +14,7 @@ function formatMeaning(meaning) {
   // dx_def, dxt, dlink
   meaning = meaning.replace(/({dx_def})(.*)({\/dx_def})/g, '[$2]');
   meaning = meaning.replace(/({dxt)\|([\w\s]*)([:\d]*)\|(.*)\|([illustraion|table|\d?])}/g, '<i><a href=#>$2</a><\i>');
-  meaning = meaning.replace(/({d_link)\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)}/g, '$2');
+  meaning = meaning.replace(/({d_link)\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)}/g, '<a href=#>$2</a>');
   
 
   // return uppercase of the second capture group [not an anchor tag]
