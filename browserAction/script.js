@@ -54,7 +54,7 @@ async function handleResponse(message) {
 
   } else {
     // invalid or no keyword selected
-    setMsg('&nbsp&nbsp No/multiple words selected');
+    setMsg('No/multiple words selected');
   }
 }
 
