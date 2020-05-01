@@ -82,6 +82,7 @@ function setDefinition(response, hasHomograph) {
   let keyword = document.getElementById('keyword');
   let pos = document.getElementById('pos');
   let resultText = document.getElementById('text-result');
+  resultText.classList.remove('spacer');
   // pronunciation button 
   let keyContainer = document.getElementById('key-container');
   let soundButton = document.createElement('button');
@@ -103,7 +104,6 @@ function setDefinition(response, hasHomograph) {
   // removing the ending colon and digit :1, :2, :3
   keyword.innerHTML = actualWord.replace(/:\d/g, '');
   pos.innerHTML = partOfSpeech;
-  resultText.classList.remove('spacer');
   resultText.innerHTML = '';
   // if not homograph, then go through the first element only
   // else go through all elements one by one
@@ -112,8 +112,8 @@ function setDefinition(response, hasHomograph) {
     element.def.forEach((def) => {
       if (def.hasOwnProperty('vd')) {
         let vd = document.createElement('div');
-        vd.classList.add('no-space');
-        vd.innerHTML = `<i>${def.vd}</i>`;
+        vd.classList.add('verb-divider');
+        vd.innerHTML = `<i>: ${def.vd}</i>`;
         resultText.appendChild(vd);
       }
       let ol = document.createElement('ol');

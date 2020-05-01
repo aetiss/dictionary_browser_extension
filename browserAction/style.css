@@ -27,22 +27,22 @@ a {
 }
 
 .key-container {
-  padding: 8px;
+  padding: 24px 8px 8px 8px;
 }
 
 .keyword {
   margin: 0px 4px;
   display: inline-block;
-  font-weight: 500;
   font-size: 22px;
+  font-weight: 500;
 }
 
 .pos {
   margin: 0px 4px;
   display: inline-block;
+  font-size: 17px;
   font-weight: 400;
   font-style: italic;
-  font-size: 17px;
 }
 
 .icon-button {
@@ -63,14 +63,14 @@ a {
 }
 
 .text-result {
-  font-weight: 400;
-  font-size: 17px;
   line-height: 1.2;
+  font-size: 17px;
+  font-weight: 400;
 }
 
 .entry-number {
-  padding-left: 12px;
   padding-top: 12px;
+  padding-left: 12px;
   font-weight: 500;
 }
 
@@ -80,7 +80,7 @@ a {
 }
 
 .more-info {
-  padding: 4px 8px;
+  padding: 4px 8px 8px;
   text-align: end;
   font-weight: 400;
   font-size: 14px;
