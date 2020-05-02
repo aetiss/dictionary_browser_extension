@@ -10,12 +10,20 @@ function formatMeaning(meaning) {
   meaning = meaning.replace(/{sup}/g, '<sup>'); // superscript open
   meaning = meaning.replace(/{\/sup}/g, '</sup>'); // superscript close
   meaning = meaning.replace(/({a_link\|)(\w+)}/g, '$2'); //substitute with second capture group
-  meaning = meaning.replace(/{sx\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)\|([\w]*)}/g, sxReplacer); //synonymous cross-reference
+  meaning = meaning.replace(
+    /{sx\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)\|([\w]*)}/g,
+    sxReplacer,
+  ); //synonymous cross-reference
   // dx_def, dxt, dlink
   meaning = meaning.replace(/({dx_def})(.*)({\/dx_def})/g, '[$2]');
-  meaning = meaning.replace(/({dxt)\|([\w\s]*)([:\d]*)\|(.*)\|([illustraion|table|\d?])}/g, '<i><a href=#>$2</a><\i>');
-  meaning = meaning.replace(/({d_link)\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)}/g, '<a href=#>$2</a>');
-  
+  meaning = meaning.replace(
+    /({dxt)\|([\w\s]*)([:\d]*)\|(.*)\|([illustraion|table|\d?])}/g,
+    '<i><a href=#>$2</a><i>',
+  );
+  meaning = meaning.replace(
+    /({d_link)\|([\w\s]*)([:\d]*)\|([\w\s]*)([:\d]*)}/g,
+    '<a href=#>$2</a>',
+  );
 
   // return uppercase of the second capture group [not an anchor tag]
   function sxReplacer(match, p1, p2, p3, p4, p5) {
@@ -77,23 +85,16 @@ async function setCache(keyword, response, hasHomograph) {
   LocalStorage.set(store);
 }
 
-function setDefinition(response, hasHomograph) {
-  // received response is an array of objects now
-  let keyword = document.getElementById('keyword');
-  let pos = document.getElementById('pos');
-  let resultText = document.getElementById('text-result');
-  resultText.classList.remove('spacer');
-  // pronunciation button 
+function setAudio(response) {
   let keyContainer = document.getElementById('key-container');
   let soundButton = document.createElement('button');
   soundButton.classList.add('icon-button');
   let audio = document.getElementById('pronunciation');
   let audioUrl = 'https://media.merriam-webster.com/soundc11';
-
-  let actualWord = response[0].meta.id;
-  let partOfSpeech = response[0].fl;
   let audioFile = response[0].hwi.prs[0].sound.audio;
-
+  if (!audioFile) {
+    return;
+  }
   let subDir = getSubDirectory(audioFile);
   audioUrl = `${audioUrl}/${subDir}/${audioFile}.wav`;
   audio.src = audioUrl;
@@ -101,6 +102,19 @@ function setDefinition(response, hasHomograph) {
   soundButton.onclick = () => {
     audio.play();
   };
+}
+
+function setDefinition(response, hasHomograph) {
+  // received response is an array of objects now
+  let keyword = document.getElementById('keyword');
+  let pos = document.getElementById('pos');
+  let resultText = document.getElementById('text-result');
+  resultText.classList.remove('spacer');
+
+  let actualWord = response[0].meta.id;
+  let partOfSpeech = response[0].fl;
+  setAudio(response);
+
   // removing the ending colon and digit :1, :2, :3
   keyword.innerHTML = actualWord.replace(/:\d/g, '');
   pos.innerHTML = partOfSpeech;
