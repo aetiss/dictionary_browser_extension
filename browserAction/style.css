@@ -45,18 +45,21 @@ a {
   font-style: italic;
 }
 
-.icon-button {
+.sound-btn {
+  vertical-align: middle;
   margin: 0px 4px;
-  height: 24px;
-  /* width: 20px; */
-  display: inline-block;
-  background-image: url(../assets/icon_speaker.png);
-  background-repeat: no-repeat;
+  padding: 0px;
+  display: none;
   cursor: pointer;
-  overflow: hidden;
   border: none;
-  background-color: transparent;
   outline: none;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+.btn-img {
+  width: 75%;
+  height: 75%;
 }
 
 .spacer {

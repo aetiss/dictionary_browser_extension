@@ -25,7 +25,7 @@ function formatMeaning(meaning) {
     '<a href=#>$2</a>',
   );
 
-  // return uppercase of the second capture group [not an anchor tag]
+  // return uppercase of the second capture group 
   function sxReplacer(match, p1, p2, p3, p4, p5) {
     return `<a href=#>:${p1.toUpperCase()}</a>`;
   }
@@ -86,9 +86,9 @@ async function setCache(keyword, response, hasHomograph) {
 }
 
 function setAudio(response) {
-  let keyContainer = document.getElementById('key-container');
-  let soundButton = document.createElement('button');
-  soundButton.classList.add('icon-button');
+  let soundButton = document.getElementById('sound-btn');
+  // make btn visible
+  soundButton.style.display = 'inline-block';
   let audio = document.getElementById('pronunciation');
   let audioUrl = 'https://media.merriam-webster.com/soundc11';
   let audioFile = response[0].hwi.prs[0].sound.audio;
@@ -98,7 +98,6 @@ function setAudio(response) {
   let subDir = getSubDirectory(audioFile);
   audioUrl = `${audioUrl}/${subDir}/${audioFile}.wav`;
   audio.src = audioUrl;
-  keyContainer.appendChild(soundButton);
   soundButton.onclick = () => {
     audio.play();
   };
