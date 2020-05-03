@@ -1,0 +1,14 @@
+* {
+  font-family: 'Fira Sans', sans-serif;
+}
+
+.container {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  margin-left: -480px;
+  width: 960px;
+  padding: 24px;
+  border-radius: 4px;
+  background-color: gray;
+}
