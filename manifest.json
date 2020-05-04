@@ -1,6 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Dictionary Browser Extension",
+    "homepage_url": "https://github.com/aetiss/dictionary_browser_extension",
     "version": "1.1",
     "description": "Basic English Dictionary lookup addon/extension for Firefox providing meaning of word thats double-clicked selected on a webpage.",
     "icons": {
@@ -33,6 +34,9 @@
             "description": "search dictionary for selected keyword"
         }
     },
+    "web_accessible_resources": [
+        "options/options.html"
+    ],
     "options_ui": {
         "page": "options/options.html",
         "browser_style": false,

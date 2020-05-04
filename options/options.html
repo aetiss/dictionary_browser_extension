@@ -11,12 +11,39 @@
   </head>
   <body>
     <div class="container">
+      <div>
+        <img
+          class="header-img"
+          src="../assets/icon_book_64.png"
+          alt="english dictionary extension"
+        />
+        <div class="header-text">
+          English Dictionary Options Page
+        </div>
+      </div>
+      <br />
       <form>
-        <label>Keyboard shortcut</label>
+        <label style="font-size: 17px;">Keyboard Shortcut:</label>
+        <br />
         <input id="shortcut" type="text" />
-        <button id="update">Update keyboard shortcut</button>
-        <button id="reset">Reset keyboard shortcut</button>
+        <button id="update" class="btn">Update Keyboard Shortcut</button>
+        <button id="reset" class="btn">Reset Keyboard Shortcut</button>
       </form>
+      <br />
+      <div class="switch-container">
+        Choose Theme:
+        <label class="radio-container"
+          >Light
+          <input type="radio" name="theme" value="light" checked="checked" />
+          <span class="checkmark"></span>
+        </label>
+        <label class="radio-container"
+          >Dark
+          <input type="radio" name="theme" value="dark" />
+          <span class="checkmark"></span>
+        </label>
+      </div>
+      <br />
     </div>
     <script src="options.js"></script>
   </body>

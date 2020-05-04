@@ -1,5 +1,10 @@
 const LocalStorage = window.browser.storage.local;
 
+window.onload = function(){
+  let optionsLink = browser.runtime.getURL('options/options.html');
+  document.getElementById('optionsPage').setAttribute('href', optionsLink);
+};
+
 // api call here
 function getDefinition(keyword, handleDefinition) {
   const apiKey = config.API_KEY;
