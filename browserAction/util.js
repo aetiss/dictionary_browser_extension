@@ -39,16 +39,6 @@ const validateKeyword = (keyword) => {
   return hasWhiteSpace(keyword) ? false : true;
 };
 
-function getSubDirectory(audioFile) {
-  const bix = /^bix/;
-  const gg = /^gg/;
-  const number = /^[0-9\W]/;
-  if (bix.test(audioFile)) return 'bix';
-  else if (gg.test(audioFile)) return 'gg';
-  else if (number.test(audioFile)) return 'number';
-  else return audioFile.charAt(0);
-}
-
 async function checkCache(keyword) {
   // fetching recentWords from LocalStorage
   let store = {};
@@ -85,6 +75,16 @@ async function setCache(keyword, response, hasHomograph) {
   LocalStorage.set(store);
 }
 
+function getSubDirectory(audioFile) {
+  const bix = /^bix/;
+  const gg = /^gg/;
+  const number = /^[0-9\W]/;
+  if (bix.test(audioFile)) return 'bix';
+  else if (gg.test(audioFile)) return 'gg';
+  else if (number.test(audioFile)) return 'number';
+  else return audioFile.charAt(0);
+}
+
 function setAudio(response) {
   let soundButton = document.getElementById('sound-btn');
   // make btn visible
@@ -109,6 +109,9 @@ function setDefinition(response, hasHomograph) {
   let pos = document.getElementById('pos');
   let resultText = document.getElementById('text-result');
   resultText.classList.remove('spacer');
+  let moreInfo = document.getElementById('merriam-link');
+  const merriamLink = 'https://www.merriam-webster.com/dictionary/';
+  moreInfo.setAttribute('href', merriamLink+keyword.innerHTML);
 
   let actualWord = response[0].meta.id;
   let partOfSpeech = response[0].fl;

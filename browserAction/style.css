@@ -3,6 +3,8 @@ body {
   padding: 0px;
   width: 420px;
   font-family: 'Fira Sans', sans-serif;
+  color: #000;
+  background: #fff;
 }
 
 ol {
@@ -22,8 +24,8 @@ a {
   padding: 14px;
   text-align: center;
   font-size: 22px;
-  color: #ffffff;
-  background-color: #305f7a;
+  color: #fff;
+  background: #305f7a;
 }
 
 .key-container {
