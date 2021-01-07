@@ -1,5 +1,7 @@
 # English Dictionary - Browser Extension
 
+Available for Firefox here [LINK](https://addons.mozilla.org/en-US/firefox/addon/dictionary-browser-extension/)
+
 An English Dictionary lookup addon/extension for Firefox Quantum providing meaning of a word, from Meriam-Webster's website, thats selected on a webpage.
 
 > You can read about the Merriam-Webster's Dictionary API [here](https://dictionaryapi.com/).
