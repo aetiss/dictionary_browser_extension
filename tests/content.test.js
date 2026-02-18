@@ -200,6 +200,89 @@ describe('content.js', () => {
       assert.equal(exampleEl.className, 'dict-ext-example');
       assert.equal(exampleEl.textContent, '"Say hello!"');
     });
+
+    it('shows IPA row when entry.ipa is present', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
+
+      const entry = {
+        word: 'hello',
+        ipa: '/həˈloʊ/',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.createTooltip(entry, { bottom: 100, left: 50 });
+
+      const tooltip = bodyChildren[0];
+      const allClasses = tooltip.children.map((c) => c.className);
+      assert.ok(allClasses.includes('dict-ext-pronunciation'), 'should have pronunciation row');
+      const pronRow = tooltip.children.find((c) => c.className === 'dict-ext-pronunciation');
+      assert.equal(pronRow.children[0].textContent, '/həˈloʊ/');
+      assert.equal(pronRow.children[0].className, 'dict-ext-ipa');
+    });
+
+    it('omits pronunciation row when no IPA', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
+
+      const entry = {
+        word: 'hello',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.createTooltip(entry, { bottom: 100, left: 50 });
+
+      const tooltip = bodyChildren[0];
+      const allClasses = tooltip.children.map((c) => c.className);
+      assert.ok(!allClasses.includes('dict-ext-pronunciation'));
+    });
+
+    it('shows etymology when entry.etymology is present', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
+
+      const entry = {
+        word: 'hello',
+        etymology: 'From Old English.',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.createTooltip(entry, { bottom: 100, left: 50 });
+
+      const tooltip = bodyChildren[0];
+      const etymEl = tooltip.children.find((c) => c.className === 'dict-ext-etymology');
+      assert.ok(etymEl, 'should have etymology element');
+      assert.equal(etymEl.textContent, 'From Old English.');
+    });
+
+    it('truncates long etymology to 150 chars in tooltip', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
+
+      const entry = {
+        word: 'hello',
+        etymology: 'X'.repeat(200),
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.createTooltip(entry, { bottom: 100, left: 50 });
+
+      const tooltip = bodyChildren[0];
+      const etymEl = tooltip.children.find((c) => c.className === 'dict-ext-etymology');
+      assert.ok(etymEl.textContent.length <= 150);
+      assert.ok(etymEl.textContent.endsWith('\u2026'));
+    });
+
+    it('omits etymology when absent', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
+
+      const entry = {
+        word: 'hello',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.createTooltip(entry, { bottom: 100, left: 50 });
+
+      const tooltip = bodyChildren[0];
+      const allClasses = tooltip.children.map((c) => c.className);
+      assert.ok(!allClasses.includes('dict-ext-etymology'));
+    });
   });
 
   describe('showSuggestionsTooltip', () => {

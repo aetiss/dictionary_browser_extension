@@ -45,6 +45,22 @@ window.onload = function () {
   });
 };
 
+// --- Pronunciation (Web Speech API) ---
+if (typeof speechSynthesis !== 'undefined') {
+  document.getElementById('speak-btn').addEventListener('click', function () {
+    const word = this.dataset.word;
+    if (!word) return;
+    speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(word);
+    utt.lang = 'en-US';
+    utt.rate = 0.85;
+    this.classList.add('speaking');
+    utt.onend = () => this.classList.remove('speaking');
+    utt.onerror = () => this.classList.remove('speaking');
+    speechSynthesis.speak(utt);
+  });
+}
+
 // Search on Enter
 searchInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {

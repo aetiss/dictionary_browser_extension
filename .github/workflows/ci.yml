@@ -11,6 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # 1 — Unit tests (no browser, no data/ needed)
+  # ---------------------------------------------------------------------------
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -23,8 +26,17 @@ jobs:
           node-version: 18
 
       - name: Run unit tests
-        run: node --test tests/background.test.js tests/content.test.js tests/util.test.js tests/prepare-wordset.test.js
+        run: |
+          node --test \
+            tests/background.test.js \
+            tests/content.test.js \
+            tests/util.test.js \
+            tests/prepare-wordset.test.js \
+            tests/prepare-wiktionary.test.js
 
+  # ---------------------------------------------------------------------------
+  # 2 — E2E tests (Playwright + Chromium, uses fast Wordset data for CI)
+  # ---------------------------------------------------------------------------
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
@@ -37,11 +49,20 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: Prepare dictionary data
-        run: node scripts/prepare-wordset.js
-
       - name: Install dependencies
         run: npm ci
+
+      # Cache Wordset data across runs — the source rarely changes.
+      - name: Cache dictionary data (Wordset)
+        id: data-cache
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: wordset-data-${{ hashFiles('scripts/prepare-wordset.js') }}
+
+      - name: Prepare dictionary data
+        if: steps.data-cache.outputs.cache-hit != 'true'
+        run: node scripts/prepare-wordset.js
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -54,7 +75,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install chromium --with-deps
 
-      - name: Install Playwright deps (cached)
+      - name: Install Playwright system deps (cached browser)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
@@ -69,6 +90,9 @@ jobs:
           path: test-results/
           retention-days: 7
 
+  # ---------------------------------------------------------------------------
+  # 3 — Manifest validation (no Node needed beyond shell)
+  # ---------------------------------------------------------------------------
   lint-manifest:
     name: Validate Manifest
     runs-on: ubuntu-latest
@@ -79,13 +103,20 @@ jobs:
       - name: Validate manifest.json is valid JSON
         run: node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8'))"
 
-      - name: Check required manifest fields
+      - name: Check required MV3 fields and version sync
         run: |
           node -e "
-            const m = JSON.parse(require('fs').readFileSync('manifest.json','utf8'));
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('manifest.json','utf8'));
+            const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
+
             const required = ['manifest_version','name','version','permissions','background','content_scripts','action'];
             const missing = required.filter(k => !m[k]);
-            if (missing.length) { console.error('Missing:', missing); process.exit(1); }
-            if (m.manifest_version !== 3) { console.error('Not MV3'); process.exit(1); }
-            console.log('Manifest OK: MV3, all required fields present');
+            if (missing.length) { console.error('Missing manifest fields:', missing); process.exit(1); }
+            if (m.manifest_version !== 3) { console.error('manifest_version must be 3'); process.exit(1); }
+            if (m.version !== pkg.version) {
+              console.error('Version mismatch: manifest.json=' + m.version + ' package.json=' + pkg.version);
+              process.exit(1);
+            }
+            console.log('Manifest OK — MV3, all required fields, version ' + m.version);
           "

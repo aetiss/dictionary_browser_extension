@@ -1,19 +1,30 @@
 {
-  "name": "dictionary_browser_extension",
-  "version": "1.0.0",
-  "description": "Available for Firefox here [LINK](https://addons.mozilla.org/en-US/firefox/addon/dictionary-browser-extension/)",
+  "name": "wordworkshop",
+  "version": "4.0.0",
+  "description": "WordWorkshop — browser extension for instant definitions, pronunciation, and etymology. No internet required.",
   "main": "background.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "node --test tests/background.test.js tests/content.test.js tests/util.test.js tests/prepare-wordset.test.js",
+    "test": "node --test tests/background.test.js tests/content.test.js tests/util.test.js tests/prepare-wordset.test.js tests/prepare-wiktionary.test.js",
     "test:e2e": "npx playwright test tests/e2e.spec.js",
-    "test:all": "npm test && npm run test:e2e"
+    "test:all": "npm test && npm run test:e2e",
+    "data:download": "node scripts/download-data.js",
+    "data:build": "node scripts/prepare-wiktionary.js",
+    "data:build:ci": "node scripts/prepare-wordset.js"
   },
-  "keywords": [],
+  "keywords": ["dictionary", "extension", "browser", "offline", "wiktionary", "pronunciation", "etymology"],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aetiss/dictionary_browser_extension.git"
+  },
+  "homepage": "https://addons.mozilla.org/en-US/firefox/addon/dictionary-browser-extension/",
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@playwright/test": "^1.58.2"
   }

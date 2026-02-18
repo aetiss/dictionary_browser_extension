@@ -1,35 +1,43 @@
-/* Options page — retro minimal with dark mode support */
+/* Options page — Crystal design, Solarized Earthy palette */
 
 :root {
-  --bg-primary: #fafbfc;
-  --bg-secondary: #f0f1f3;
-  --text-primary: #24292f;
-  --text-secondary: #57606a;
-  --text-muted: #8b949e;
-  --accent: #0969da;
-  --border: #d0d7de;
-  --border-light: #e8eaed;
-  --btn-bg: #24292f;
-  --btn-hover: #0969da;
-  --radio-bg: #d0d7de;
-  --radio-active: #0969da;
-  --font: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', 'Monaco',
-    'Courier New', monospace;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    sans-serif;
+
+  /* Light — Solarized Earthy */
+  --bg-primary:   #fdf6e3;   /* warm cream */
+  --bg-secondary: #fffef9;   /* near-white warm */
+  --text-primary:   #3c2f20; /* espresso */
+  --text-secondary: #5a4535; /* walnut */
+  --text-muted:     #9e8d7a; /* taupe */
+  --accent:         #467a71; /* sage-teal */
+  --accent-hover:   #355f58;
+  --accent-soft:    rgba(70, 122, 113, 0.09);
+  --accent-ring:    rgba(70, 122, 113, 0.17);
+  --border:         #d4c8b2; /* warm tan */
+  --border-light:   #eee8d5; /* parchment */
+  --radio-bg:       #d4c8b2;
+  --radio-active:   #467a71;
+  --shadow:         0 1px 3px rgba(60, 47, 32, 0.10);
+  --shadow-md:      0 4px 20px rgba(60, 47, 32, 0.10);
 }
 
 [data-theme='dark'] {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --text-primary: #e6edf3;
-  --text-secondary: #c9d1d9;
-  --text-muted: #8b949e;
-  --accent: #58a6ff;
-  --border: #30363d;
-  --border-light: #21262d;
-  --btn-bg: #21262d;
-  --btn-hover: #58a6ff;
-  --radio-bg: #30363d;
-  --radio-active: #58a6ff;
+  --bg-primary:   #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary:   #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted:     #64748b;
+  --accent:         #5eb4ab;
+  --accent-hover:   #7cc9c2;
+  --accent-soft:    rgba(94, 180, 171, 0.08);
+  --accent-ring:    rgba(94, 180, 171, 0.20);
+  --border:         #334155;
+  --border-light:   #1e293b;
+  --radio-bg:       #334155;
+  --radio-active:   #5eb4ab;
+  --shadow:         0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-md:      0 4px 20px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -42,115 +50,165 @@ body {
   background: var(--bg-primary);
   font-family: var(--font);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 .container {
-  max-width: 640px;
+  max-width: 540px;
   margin: 48px auto;
-  padding: 32px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
 }
 
-/* Header */
+/* Hide raw <br> spacers inside the container */
+.container > br {
+  display: none;
+}
+
+/* --- Page header --- */
+.container > div:first-child {
+  padding: 26px 32px 22px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+}
+
 .header-img {
   display: inline-block;
   vertical-align: middle;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
 }
 
 .header-text {
   display: inline-block;
   vertical-align: middle;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   color: var(--text-primary);
-  margin-left: 12px;
+  margin-left: 11px;
+  letter-spacing: -0.5px;
 }
 
-/* Sections */
+/* --- Section wrappers --- */
 form,
 .switch-container {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-light);
+  padding: 22px 32px;
+  border-bottom: 1px solid var(--border-light);
 }
 
+form:last-child,
+.switch-container:last-child {
+  border-bottom: none;
+}
+
+/* Section label */
 label[style] {
   all: unset;
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  letter-spacing: 0.8px;
+  margin-bottom: 14px;
+  padding-left: 8px;
+  border-left: 3px solid var(--accent);
+  line-height: 1.4;
 }
 
 .switch-container {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  line-height: 2.4;
 }
 
-/* Input */
+/* --- Shortcut input --- */
 #shortcut {
   font-family: var(--font);
   font-size: 13px;
-  padding: 6px 10px;
+  padding: 9px 12px;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 8px;
   background: var(--bg-primary);
   color: var(--text-primary);
   outline: none;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  display: block;
+  width: 220px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 #shortcut:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
-/* Buttons */
+/* --- Buttons --- */
 .btn {
   font-family: var(--font);
-  font-size: 11px;
-  height: auto;
-  padding: 6px 12px;
-  margin: 4px 4px 4px 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 18px;
+  margin: 0 6px 0 0;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--btn-bg);
-  color: var(--bg-primary);
-  transition: background 0.15s, border-color 0.15s;
+  border-radius: 8px;
+  transition: all 0.15s;
+  vertical-align: middle;
 }
 
-.btn:hover {
-  background: var(--btn-hover);
-  border-color: var(--btn-hover);
+/* Primary */
+.btn:first-of-type {
+  border: none;
+  background: var(--accent);
   color: #fff;
+  box-shadow: 0 1px 3px var(--accent-ring);
 }
 
-/* Radio buttons */
+.btn:first-of-type:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 12px var(--accent-ring);
+  transform: translateY(-1px);
+}
+
+/* Secondary */
+.btn:not(:first-of-type) {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn:not(:first-of-type):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* --- Radio buttons --- */
 .radio-container {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   position: relative;
-  padding-left: 28px;
-  margin-left: 16px;
+  padding-left: 26px;
   cursor: pointer;
   font-size: 13px;
-  font-weight: 400;
+  font-weight: 500;
   text-transform: none;
   letter-spacing: normal;
   user-select: none;
+  color: var(--text-secondary);
+  transition: color 0.15s;
+}
+
+.radio-container:hover {
   color: var(--text-primary);
 }
 
@@ -162,14 +220,15 @@ label[style] {
 
 .checkmark {
   position: absolute;
-  top: 1px;
+  top: 50%;
   left: 0;
-  height: 16px;
-  width: 16px;
+  transform: translateY(-50%);
+  height: 17px;
+  width: 17px;
   background: var(--radio-bg);
   border-radius: 50%;
-  border: 1px solid var(--border);
-  transition: background 0.15s, border-color 0.15s;
+  border: 1.5px solid var(--border);
+  transition: all 0.15s;
 }
 
 .radio-container:hover .checkmark {
@@ -179,6 +238,7 @@ label[style] {
 .radio-container input:checked ~ .checkmark {
   background: var(--radio-active);
   border-color: var(--radio-active);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .checkmark:after {
@@ -194,8 +254,8 @@ label[style] {
 .radio-container .checkmark:after {
   top: 4px;
   left: 4px;
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #fff;
 }

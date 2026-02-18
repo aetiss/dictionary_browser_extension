@@ -13,6 +13,7 @@ function createMockDOM() {
       textContent: '',
       innerHTML: '',
       children: [],
+      dataset: {},
       classList: {
         _classes: new Set(),
         add(c) { this._classes.add(c); },
@@ -319,6 +320,89 @@ describe('util.js', () => {
         .filter((c) => c.className === 'section-pos')
         .map((c) => c.textContent);
       assert.deepEqual(sectionLabels, ['verb', 'noun']);
+    });
+
+    it('shows IPA and pronunciation row when entry.ipa present', () => {
+      const mock = { get: async () => ({}), set: () => {} };
+      const { ctx, elements } = loadUtil(mock);
+
+      const entry = {
+        word: 'hello',
+        ipa: '/həˈloʊ/',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.setDefinition(entry);
+
+      assert.equal(elements['ipa'].textContent, '/həˈloʊ/');
+      assert.ok(!elements['pronunciation'].classList.contains('hidden'));
+      assert.equal(elements['speak-btn'].dataset.word, 'hello');
+    });
+
+    it('hides pronunciation row when no IPA', () => {
+      const mock = { get: async () => ({}), set: () => {} };
+      const { ctx, elements } = loadUtil(mock);
+
+      const entry = {
+        word: 'hello',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.setDefinition(entry);
+
+      assert.ok(elements['pronunciation'].classList.contains('hidden'));
+    });
+
+    it('shows etymology when entry.etymology present', () => {
+      const mock = { get: async () => ({}), set: () => {} };
+      const { ctx, elements } = loadUtil(mock);
+
+      const entry = {
+        word: 'hello',
+        etymology: 'From Old English hēl, greeting.',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.setDefinition(entry);
+
+      assert.ok(!elements['etymology'].classList.contains('hidden'));
+      assert.equal(elements['etymology'].textContent, 'From Old English hēl, greeting.');
+    });
+
+    it('hides etymology when absent', () => {
+      const mock = { get: async () => ({}), set: () => {} };
+      const { ctx, elements } = loadUtil(mock);
+
+      const entry = {
+        word: 'hello',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.setDefinition(entry);
+
+      assert.ok(elements['etymology'].classList.contains('hidden'));
+    });
+
+    it('renders antonyms when present', () => {
+      const mock = { get: async () => ({}), set: () => {} };
+      const { ctx, elements } = loadUtil(mock);
+
+      const entry = {
+        word: 'happy',
+        meanings: [{
+          def: 'full of joy',
+          speech_part: 'adjective',
+          antonyms: ['sad', 'miserable'],
+        }],
+      };
+
+      ctx.setDefinition(entry);
+
+      const resultText = elements['text-result'];
+      const antEl = resultText.children.find((c) => c.className === 'antonyms');
+      assert.ok(antEl, 'antonyms element should exist');
+      assert.ok(antEl.textContent.includes('sad'));
+      assert.ok(antEl.textContent.includes('miserable'));
     });
   });
 

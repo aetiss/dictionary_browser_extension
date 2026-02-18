@@ -85,6 +85,46 @@ function createTooltip(entry, rect, stemInfo) {
 
   tooltip.appendChild(header);
 
+  // IPA + speak button
+  if (entry.ipa) {
+    const pronRow = document.createElement('div');
+    pronRow.className = 'dict-ext-pronunciation';
+
+    const ipaSpan = document.createElement('span');
+    ipaSpan.className = 'dict-ext-ipa';
+    ipaSpan.textContent = entry.ipa;
+    pronRow.appendChild(ipaSpan);
+
+    if (typeof speechSynthesis !== 'undefined') {
+      const speakBtn = document.createElement('button');
+      speakBtn.className = 'dict-ext-speak-btn';
+      speakBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+      speakBtn.title = 'Listen';
+      speakBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(entry.word);
+        utt.lang = 'en-US';
+        utt.rate = 0.85;
+        speechSynthesis.speak(utt);
+      });
+      pronRow.appendChild(speakBtn);
+    }
+
+    tooltip.appendChild(pronRow);
+  }
+
+  // Etymology (truncated for tooltip compactness)
+  if (entry.etymology) {
+    const etymDiv = document.createElement('div');
+    etymDiv.className = 'dict-ext-etymology';
+    const text = entry.etymology.length > 150
+      ? entry.etymology.slice(0, 148) + '\u2026'
+      : entry.etymology;
+    etymDiv.textContent = text;
+    tooltip.appendChild(etymDiv);
+  }
+
   // Definitions (max 3)
   const defs = document.createElement('ol');
   defs.className = 'dict-ext-defs';

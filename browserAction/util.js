@@ -41,6 +41,10 @@ function setDefinition(entry, stemInfo) {
   const stemNotice = document.getElementById('stem-notice');
   const keywordEl = document.getElementById('keyword');
   const posEl = document.getElementById('pos');
+  const pronEl = document.getElementById('pronunciation');
+  const ipaEl = document.getElementById('ipa');
+  const speakBtn = document.getElementById('speak-btn');
+  const etymEl = document.getElementById('etymology');
   const resultText = document.getElementById('text-result');
   const sourceLink = document.getElementById('source-link');
 
@@ -63,6 +67,26 @@ function setDefinition(entry, stemInfo) {
   // First part of speech
   posEl.textContent = entry.meanings[0] ? entry.meanings[0].speech_part : '';
 
+  // IPA pronunciation
+  if (entry.ipa) {
+    pronEl.classList.remove('hidden');
+    ipaEl.textContent = entry.ipa;
+    speakBtn.dataset.word = entry.word;
+  } else {
+    pronEl.classList.add('hidden');
+    ipaEl.textContent = '';
+    speakBtn.dataset.word = '';
+  }
+
+  // Etymology
+  if (entry.etymology) {
+    etymEl.classList.remove('hidden');
+    etymEl.textContent = entry.etymology;
+  } else {
+    etymEl.classList.add('hidden');
+    etymEl.textContent = '';
+  }
+
   // Source link
   sourceLink.setAttribute('href', `https://en.wiktionary.org/wiki/${entry.word}`);
 
@@ -74,7 +98,7 @@ function setDefinition(entry, stemInfo) {
     grouped[part].push(m);
   });
 
-  // Render
+  // Render definitions
   resultText.innerHTML = '';
 
   for (const [speechPart, meanings] of Object.entries(grouped)) {
@@ -108,6 +132,16 @@ function setDefinition(entry, stemInfo) {
       synDiv.className = 'synonyms';
       synDiv.textContent = 'syn: ' + uniqueSynonyms.join(', ');
       resultText.appendChild(synDiv);
+    }
+
+    // Antonyms
+    const allAntonyms = meanings.flatMap((m) => m.antonyms || []);
+    const uniqueAntonyms = [...new Set(allAntonyms)];
+    if (uniqueAntonyms.length > 0) {
+      const antDiv = document.createElement('div');
+      antDiv.className = 'antonyms';
+      antDiv.textContent = 'ant: ' + uniqueAntonyms.join(', ');
+      resultText.appendChild(antDiv);
     }
   }
 }
