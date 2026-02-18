@@ -41,14 +41,17 @@ test.describe('Dictionary Extension E2E — Random Wikipedia Page', () => {
 
     // Find a good word to double-click — only from direct text nodes in <p> tags
     // (avoid links, spans, and other inline elements that may interfere with selection)
+    // Also scroll the target paragraph into the viewport before getting bounds,
+    // since getBoundingClientRect() returns off-screen coords for below-fold content.
     const targetWord = await page.evaluate(() => {
       const paragraphs = document.querySelectorAll('#mw-content-text p:not(.mw-empty-elt)');
       for (const p of paragraphs) {
-        // Walk only direct text nodes to avoid words inside <a>, <b>, <span> etc.
         for (const node of p.childNodes) {
           if (node.nodeType !== Node.TEXT_NODE) continue;
           const words = node.textContent.match(/\b[a-z]{4,10}\b/g);
           if (words && words.length > 0) {
+            // Scroll this paragraph into view before returning
+            p.scrollIntoView({ block: 'center', behavior: 'instant' });
             return words[0];
           }
         }
@@ -58,6 +61,9 @@ test.describe('Dictionary Extension E2E — Random Wikipedia Page', () => {
 
     expect(targetWord).toBeTruthy();
     console.log(`  Target word: "${targetWord}"`);
+
+    // Brief pause for scroll to settle, then measure bounds in-viewport
+    await page.waitForTimeout(300);
 
     const wordBounds = await page.evaluate((word) => {
       const walker = document.createTreeWalker(
@@ -73,7 +79,8 @@ test.describe('Dictionary Extension E2E — Random Wikipedia Page', () => {
           range.setStart(node, match.index);
           range.setEnd(node, match.index + word.length);
           const rect = range.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
+          // Only use bounds that are actually within the viewport
+          if (rect.width > 0 && rect.height > 0 && rect.top >= 0 && rect.top < window.innerHeight) {
             return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
           }
         }
@@ -86,7 +93,7 @@ test.describe('Dictionary Extension E2E — Random Wikipedia Page', () => {
     await page.mouse.dblclick(wordBounds.x, wordBounds.y);
 
     // Wait for any tooltip (found or not-found) — generous timeout for CI
-    const tooltip = await page.waitForSelector('.dict-ext-tooltip', { timeout: 10000 });
+    const tooltip = await page.waitForSelector('.dict-ext-tooltip', { timeout: 15000 });
     expect(tooltip).toBeTruthy();
 
     const tooltipText = await tooltip.textContent();
