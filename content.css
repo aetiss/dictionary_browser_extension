@@ -3,18 +3,19 @@
    CSS variables scoped to .dict-ext-tooltip since content scripts can't own :root. */
 
 .dict-ext-tooltip {
-  /* Light — Solarized Earthy */
-  --dext-bg:           #fdf6e3;   /* warm cream */
-  --dext-bg-header:    #eee8d5;   /* parchment */
-  --dext-text:         #3c2f20;   /* espresso */
-  --dext-text-sec:     #5a4535;   /* walnut */
-  --dext-text-muted:   #9e8d7a;   /* taupe */
-  --dext-accent:       #467a71;   /* sage-teal */
-  --dext-accent-soft:  rgba(70, 122, 113, 0.09);
-  --dext-accent-ring:  rgba(70, 122, 113, 0.17);
-  --dext-border:       #d4c8b2;   /* warm tan */
-  --dext-border-light: #eee8d5;   /* parchment */
-  --dext-link:         #467a71;
+  /* Light — colorhunt.co/palette/f4f0e444a194537d96ec8f8d */
+  --dext-bg:           #F4F0E4;   /* warm cream */
+  --dext-bg-header:    #EAE5D3;   /* slightly darker cream */
+  --dext-text:         #2C3A38;   /* deep teal-dark */
+  --dext-text-sec:     #4A5E5B;   /* muted teal-grey */
+  --dext-text-muted:   #7A9896;   /* lighter teal-grey */
+  --dext-accent:       #44A194;   /* palette teal */
+  --dext-accent-soft:  rgba(68, 161, 148, 0.09);
+  --dext-accent-ring:  rgba(68, 161, 148, 0.18);
+  --dext-accent-2:     #537D96;   /* palette steel blue — etymology */
+  --dext-border:       #C8C2B0;   /* warm grey-tan */
+  --dext-border-light: #DDD8C8;   /* lighter warm */
+  --dext-link:         #44A194;
   --dext-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 
   position: absolute;
@@ -23,7 +24,7 @@
   background: var(--dext-bg);
   border: 1px solid var(--dext-border);
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(60, 47, 32, 0.12), 0 1px 3px rgba(60, 47, 32, 0.07);
+  box-shadow: 0 4px 24px rgba(44, 58, 56, 0.12), 0 1px 3px rgba(44, 58, 56, 0.07);
   font-family: var(--dext-font);
   font-size: 12.5px;
   line-height: 1.55;
@@ -40,17 +41,18 @@
 
 /* Dark theme override */
 .dict-ext-tooltip.dark-theme {
-  --dext-bg:           #0f172a;
-  --dext-bg-header:    #1e293b;
-  --dext-text:         #f1f5f9;
-  --dext-text-sec:     #cbd5e1;
-  --dext-text-muted:   #64748b;
-  --dext-accent:       #5eb4ab;   /* muted teal */
-  --dext-accent-soft:  rgba(94, 180, 171, 0.08);
-  --dext-accent-ring:  rgba(94, 180, 171, 0.20);
-  --dext-border:       #334155;
-  --dext-border-light: #1e293b;
-  --dext-link:         #5eb4ab;
+  --dext-bg:           #1A2B2E;   /* deep teal-navy */
+  --dext-bg-header:    #1F3338;   /* dark teal surface */
+  --dext-text:         #E8E2D8;   /* warm cream light */
+  --dext-text-sec:     #B8CECC;   /* muted teal-light */
+  --dext-text-muted:   #6B8B88;   /* grey-teal muted */
+  --dext-accent:       #44A194;   /* teal */
+  --dext-accent-soft:  rgba(68, 161, 148, 0.12);
+  --dext-accent-ring:  rgba(68, 161, 148, 0.25);
+  --dext-accent-2:     #6899B0;   /* lighter steel blue for dark bg */
+  --dext-border:       #2E4449;   /* subtle teal border */
+  --dext-border-light: #243C41;   /* very subtle */
+  --dext-link:         #44A194;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.20);
 }
 
@@ -141,14 +143,14 @@
   transform: scale(1.1);
 }
 
-/* --- Etymology (left-border blockquote) --- */
+/* --- Etymology (left-border, steel blue accent) --- */
 .dict-ext-etymology {
   padding: 6px 12px 6px 11px;
   font-size: 11px;
   font-style: italic;
   color: var(--dext-text-sec);
-  border-left: 3px solid var(--dext-accent);
-  background: var(--dext-accent-soft);
+  border-left: 3px solid var(--dext-accent-2);
+  background: rgba(83, 125, 150, 0.07);
   border-bottom: 1px solid var(--dext-border-light);
   line-height: 1.5;
 }

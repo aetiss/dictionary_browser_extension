@@ -3,40 +3,42 @@
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
           sans-serif;
 
-  /* Light — Solarized Earthy */
-  --bg:           #fdf6e3;   /* warm cream */
-  --bg-alt:       #eee8d5;   /* parchment */
-  --bg-input:     #fffef9;   /* near-white warm */
-  --text:         #3c2f20;   /* espresso */
-  --text-sec:     #5a4535;   /* walnut */
-  --text-muted:   #9e8d7a;   /* taupe */
-  --accent:       #467a71;   /* sage-teal */
-  --accent-hover: #355f58;   /* deeper sage */
-  --accent-soft:  rgba(70, 122, 113, 0.09);
-  --accent-ring:  rgba(70, 122, 113, 0.17);
-  --border:       #d4c8b2;   /* warm tan */
-  --border-light: #eee8d5;   /* parchment */
-  --error:        #ae3d2e;   /* terracotta */
-  --link:         #467a71;
-  --shadow:       0 1px 3px rgba(60, 47, 32, 0.10);
-  --shadow-md:    0 4px 16px rgba(60, 47, 32, 0.10);
+  /* Light — colorhunt.co/palette/f4f0e444a194537d96ec8f8d */
+  --bg:           #F4F0E4;   /* warm cream */
+  --bg-alt:       #EAE5D3;   /* slightly darker cream */
+  --bg-input:     #FDFAF2;   /* near-white warm */
+  --text:         #2C3A38;   /* deep teal-dark */
+  --text-sec:     #4A5E5B;   /* muted teal-grey */
+  --text-muted:   #7A9896;   /* lighter teal-grey */
+  --accent:       #44A194;   /* palette teal */
+  --accent-hover: #37897E;   /* teal hover */
+  --accent-soft:  rgba(68, 161, 148, 0.09);
+  --accent-ring:  rgba(68, 161, 148, 0.18);
+  --accent-2:     #537D96;   /* palette steel blue — etymology, secondary */
+  --border:       #C8C2B0;   /* warm grey-tan */
+  --border-light: #DDD8C8;   /* lighter warm */
+  --error:        #C45A58;   /* dark salmon (readable on cream) */
+  --link:         #44A194;
+  --shadow:       0 1px 3px rgba(44, 58, 56, 0.10);
+  --shadow-md:    0 4px 16px rgba(44, 58, 56, 0.10);
 }
 
 [data-theme="dark"] {
-  --bg:           #0f172a;
-  --bg-alt:       #1e293b;
-  --bg-input:     #1e293b;
-  --text:         #f1f5f9;
-  --text-sec:     #cbd5e1;
-  --text-muted:   #64748b;
-  --accent:       #5eb4ab;   /* muted teal — no neon */
-  --accent-hover: #7cc9c2;
-  --accent-soft:  rgba(94, 180, 171, 0.08);
-  --accent-ring:  rgba(94, 180, 171, 0.20);
-  --border:       #334155;
-  --border-light: #1e293b;
-  --error:        #e07a7a;
-  --link:         #5eb4ab;
+  --bg:           #1A2B2E;   /* deep teal-navy */
+  --bg-alt:       #1F3338;   /* dark teal surface */
+  --bg-input:     #1F3338;
+  --text:         #E8E2D8;   /* warm cream light */
+  --text-sec:     #B8CECC;   /* muted teal-light */
+  --text-muted:   #6B8B88;   /* grey-teal muted */
+  --accent:       #44A194;   /* teal (good contrast on dark bg) */
+  --accent-hover: #5BBFB3;   /* lighter teal hover */
+  --accent-soft:  rgba(68, 161, 148, 0.12);
+  --accent-ring:  rgba(68, 161, 148, 0.25);
+  --accent-2:     #6899B0;   /* lighter steel blue for dark bg */
+  --border:       #2E4449;   /* subtle teal border */
+  --border-light: #243C41;   /* very subtle */
+  --error:        #EC8F8D;   /* palette salmon */
+  --link:         #44A194;
   --shadow:       0 1px 3px rgba(0, 0, 0, 0.30);
   --shadow-md:    0 4px 16px rgba(0, 0, 0, 0.28);
 }
@@ -198,15 +200,15 @@ body {
   outline-offset: 2px;
 }
 
-/* --- Etymology (left-border blockquote) --- */
+/* --- Etymology (left-border blockquote, steel blue accent) --- */
 .etymology {
   font-size: 11.5px;
   font-style: italic;
   color: var(--text-sec);
   padding: 6px 10px;
   margin-bottom: 12px;
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
+  border-left: 3px solid var(--accent-2);
+  background: rgba(83, 125, 150, 0.07);
   border-radius: 0 6px 6px 0;
   line-height: 1.6;
 }

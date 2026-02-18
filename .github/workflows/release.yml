@@ -1,16 +1,29 @@
 name: Release
 
+# Triggered by a semver tag (e.g. v4.1.0).
+# Kicked off automatically by version-bump.yml (workflow_dispatch → tag push).
+#
+# Jobs (parallel where possible):
+#   test        — full test suite (unit + E2E) using fast Wordset data
+#   build-data  — Wiktionary dictionary data build (~10 min, 1.3M words)
+#   package     — waits for both, zips extension + creates GitHub release
+#   publish-firefox / publish-chrome — optional store submissions
+
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 permissions:
   contents: write
 
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 1 — Full test suite
+  #     Unit tests run first (no I/O), then E2E with Wordset data (fast ~30s).
+  # ─────────────────────────────────────────────────────────────────────────────
   test:
-    name: Run Tests
+    name: Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -21,14 +34,28 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: Run unit tests
-        run: node --test tests/background.test.js tests/content.test.js tests/util.test.js tests/prepare-wordset.test.js
-
-      - name: Prepare dictionary data
-        run: node scripts/prepare-wordset.js
-
       - name: Install dependencies
         run: npm ci
+
+      - name: Run unit tests
+        run: |
+          node --test \
+            tests/background.test.js \
+            tests/content.test.js \
+            tests/util.test.js \
+            tests/prepare-wordset.test.js \
+            tests/prepare-wiktionary.test.js
+
+      - name: Cache dictionary data (Wordset — E2E only)
+        id: data-cache
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: wordset-data-${{ hashFiles('scripts/prepare-wordset.js') }}
+
+      - name: Prepare dictionary data (Wordset)
+        if: steps.data-cache.outputs.cache-hit != 'true'
+        run: node scripts/prepare-wordset.js
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -41,16 +68,28 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install chromium --with-deps
 
-      - name: Install Playwright deps (cached)
+      - name: Install Playwright system deps (cached)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
       - name: Run E2E tests
         run: xvfb-run npx playwright test tests/e2e.spec.js
 
-  package:
-    name: Package & Release
-    needs: test
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-results/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 2 — Build full Wiktionary dictionary data (~60 MB, ~10 min on GHA).
+  #     Runs in parallel with the test job.
+  #     4 GB heap is required after the miniEntry() memory optimisation.
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-data:
+    name: Build Dictionary Data
     runs-on: ubuntu-latest
 
     steps:
@@ -60,14 +99,56 @@ jobs:
         with:
           node-version: 18
 
-      - name: Prepare dictionary data
-        run: node scripts/prepare-wordset.js
+      - name: Build Wiktionary dictionary data
+        run: node --max-old-space-size=4096 scripts/prepare-wiktionary.js
+
+      - name: Verify output
+        run: |
+          count=$(ls data/*.json | wc -l)
+          echo "Generated $count letter files"
+          du -sh data/
+          [ "$count" -ge 26 ] || (echo "ERROR: expected at least 26 letter files" && exit 1)
+
+      - name: Bundle dictionary data
+        run: tar -czf dictionary-data.tar.gz data/
+
+      - name: Upload data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dictionary-data
+          path: dictionary-data.tar.gz
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 3 — Package the extension and publish the GitHub release.
+  #     Waits for both test and build-data to pass.
+  #     Downloads Wiktionary data artifact and bundles it into the zips.
+  # ─────────────────────────────────────────────────────────────────────────────
+  package:
+    name: Package & Release
+    needs: [test, build-data]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Download dictionary data artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dictionary-data
+
+      - name: Extract dictionary data
+        run: tar -xzf dictionary-data.tar.gz
 
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      - name: Update manifest version
+      - name: Set manifest version
         run: |
           node -e "
             const fs = require('fs');
@@ -76,15 +157,15 @@ jobs:
             fs.writeFileSync('manifest.json', JSON.stringify(m, null, 4) + '\n');
           "
 
-      - name: Package extension (Chrome)
+      - name: Package extension (Chrome / MV3)
         run: |
           mkdir -p dist
-          zip -r dist/dictionary-extension-chrome-v${{ steps.version.outputs.VERSION }}.zip \
+          zip -r dist/wordworkshop-chrome-v${{ steps.version.outputs.VERSION }}.zip \
             manifest.json background.js content.js content.css \
-            browserAction/ options/ assets/ data/ \
+            browserAction/ options/ data/ \
             -x "*.DS_Store"
 
-      - name: Package extension (Firefox)
+      - name: Patch manifest for Firefox (MV2-compat background)
         run: |
           node -e "
             const fs = require('fs');
@@ -92,12 +173,15 @@ jobs:
             m.background = { scripts: ['background.js'] };
             fs.writeFileSync('manifest.json', JSON.stringify(m, null, 4) + '\n');
           "
-          zip -r dist/dictionary-extension-firefox-v${{ steps.version.outputs.VERSION }}.zip \
+
+      - name: Package extension (Firefox)
+        run: |
+          zip -r dist/wordworkshop-firefox-v${{ steps.version.outputs.VERSION }}.zip \
             manifest.json background.js content.js content.css \
-            browserAction/ options/ assets/ data/ \
+            browserAction/ options/ data/ \
             -x "*.DS_Store"
 
-      - name: Upload build artifacts
+      - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
           name: extension-packages-v${{ steps.version.outputs.VERSION }}
@@ -109,20 +193,35 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            dist/dictionary-extension-chrome-v${{ steps.version.outputs.VERSION }}.zip
-            dist/dictionary-extension-firefox-v${{ steps.version.outputs.VERSION }}.zip
+            dist/wordworkshop-chrome-v${{ steps.version.outputs.VERSION }}.zip
+            dist/wordworkshop-firefox-v${{ steps.version.outputs.VERSION }}.zip
+            dictionary-data.tar.gz
           body: |
-            ## Installation
+            ## WordWorkshop v${{ steps.version.outputs.VERSION }}
 
-            ### Chrome
-            1. Download `dictionary-extension-chrome-v${{ steps.version.outputs.VERSION }}.zip`
-            2. Go to `chrome://extensions` → Enable Developer mode
-            3. Drag and drop the zip, or unzip and Load unpacked
+            ### Install the extension
 
-            ### Firefox
-            1. Download `dictionary-extension-firefox-v${{ steps.version.outputs.VERSION }}.zip`
+            **Chrome / Edge**
+            1. Download `wordworkshop-chrome-v${{ steps.version.outputs.VERSION }}.zip`
+            2. `chrome://extensions` → Developer mode → Load unpacked (unzip first)
+
+            **Firefox**
+            1. Download `wordworkshop-firefox-v${{ steps.version.outputs.VERSION }}.zip`
             2. Or install from [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/dictionary-browser-extension/)
 
+            ### Get dictionary data (for local development)
+
+            ```bash
+            node scripts/download-data.js
+            ```
+
+            Downloads `dictionary-data.tar.gz` from this release (~60 MB, ~30 seconds).
+            Alternatively, build from Wiktionary source: `node scripts/prepare-wiktionary.js`
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 4 — Optional: submit to Firefox Add-ons (AMO).
+  #     Set repo variable FIREFOX_PUBLISH_ENABLED=true and add AMO secrets.
+  # ─────────────────────────────────────────────────────────────────────────────
   publish-firefox:
     name: Publish to Firefox Add-ons
     needs: package
@@ -130,6 +229,8 @@ jobs:
     if: ${{ vars.FIREFOX_PUBLISH_ENABLED == 'true' }}
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: extension-packages-v${{ github.ref_name }}
@@ -147,9 +248,12 @@ jobs:
             --api-key="${{ secrets.AMO_API_KEY }}" \
             --api-secret="${{ secrets.AMO_API_SECRET }}" \
             --channel=listed \
-            --upload-source-map=dist/dictionary-extension-firefox-v${{ steps.version.outputs.VERSION }}.zip \
           || echo "::warning::Firefox submission failed — upload manually at https://addons.mozilla.org/developers/"
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 5 — Optional: submit to Chrome Web Store.
+  #     Set repo variable CHROME_PUBLISH_ENABLED=true and add CWS secrets.
+  # ─────────────────────────────────────────────────────────────────────────────
   publish-chrome:
     name: Publish to Chrome Web Store
     needs: package
@@ -169,7 +273,7 @@ jobs:
       - name: Upload to Chrome Web Store
         uses: mnao305/chrome-extension-upload@v5.0.0
         with:
-          file-path: dist/dictionary-extension-chrome-v${{ steps.version.outputs.VERSION }}.zip
+          file-path: dist/wordworkshop-chrome-v${{ steps.version.outputs.VERSION }}.zip
           extension-id: ${{ vars.CHROME_EXTENSION_ID }}
           client-id: ${{ secrets.CHROME_CLIENT_ID }}
           client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}

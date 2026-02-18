@@ -1,41 +1,41 @@
-/* Options page — Crystal design, Solarized Earthy palette */
+/* Options page — Crystal design, colorhunt.co/palette/f4f0e444a194537d96ec8f8d */
 
 :root {
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
     sans-serif;
 
-  /* Light — Solarized Earthy */
-  --bg-primary:   #fdf6e3;   /* warm cream */
-  --bg-secondary: #fffef9;   /* near-white warm */
-  --text-primary:   #3c2f20; /* espresso */
-  --text-secondary: #5a4535; /* walnut */
-  --text-muted:     #9e8d7a; /* taupe */
-  --accent:         #467a71; /* sage-teal */
-  --accent-hover:   #355f58;
-  --accent-soft:    rgba(70, 122, 113, 0.09);
-  --accent-ring:    rgba(70, 122, 113, 0.17);
-  --border:         #d4c8b2; /* warm tan */
-  --border-light:   #eee8d5; /* parchment */
-  --radio-bg:       #d4c8b2;
-  --radio-active:   #467a71;
-  --shadow:         0 1px 3px rgba(60, 47, 32, 0.10);
-  --shadow-md:      0 4px 20px rgba(60, 47, 32, 0.10);
+  /* Light */
+  --bg-primary:   #F4F0E4;   /* warm cream */
+  --bg-secondary: #FDFAF2;   /* near-white warm */
+  --text-primary:   #2C3A38; /* deep teal-dark */
+  --text-secondary: #4A5E5B; /* muted teal-grey */
+  --text-muted:     #7A9896; /* lighter teal-grey */
+  --accent:         #44A194; /* palette teal */
+  --accent-hover:   #37897E;
+  --accent-soft:    rgba(68, 161, 148, 0.09);
+  --accent-ring:    rgba(68, 161, 148, 0.18);
+  --border:         #C8C2B0; /* warm grey-tan */
+  --border-light:   #DDD8C8; /* lighter warm */
+  --radio-bg:       #C8C2B0;
+  --radio-active:   #44A194;
+  --shadow:         0 1px 3px rgba(44, 58, 56, 0.10);
+  --shadow-md:      0 4px 20px rgba(44, 58, 56, 0.10);
 }
 
 [data-theme='dark'] {
-  --bg-primary:   #0f172a;
-  --bg-secondary: #1e293b;
-  --text-primary:   #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted:     #64748b;
-  --accent:         #5eb4ab;
-  --accent-hover:   #7cc9c2;
-  --accent-soft:    rgba(94, 180, 171, 0.08);
-  --accent-ring:    rgba(94, 180, 171, 0.20);
-  --border:         #334155;
-  --border-light:   #1e293b;
-  --radio-bg:       #334155;
-  --radio-active:   #5eb4ab;
+  --bg-primary:   #1A2B2E;   /* deep teal-navy */
+  --bg-secondary: #1F3338;   /* dark teal surface */
+  --text-primary:   #E8E2D8; /* warm cream light */
+  --text-secondary: #B8CECC; /* muted teal-light */
+  --text-muted:     #6B8B88; /* grey-teal muted */
+  --accent:         #44A194; /* teal */
+  --accent-hover:   #5BBFB3;
+  --accent-soft:    rgba(68, 161, 148, 0.12);
+  --accent-ring:    rgba(68, 161, 148, 0.25);
+  --border:         #2E4449; /* subtle teal border */
+  --border-light:   #243C41;
+  --radio-bg:       #2E4449;
+  --radio-active:   #44A194;
   --shadow:         0 1px 3px rgba(0, 0, 0, 0.30);
   --shadow-md:      0 4px 20px rgba(0, 0, 0, 0.28);
 }

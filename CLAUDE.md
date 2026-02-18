@@ -100,17 +100,26 @@ All extension API calls (`api.runtime`, `api.storage`, `api.commands`, `api.tabs
   - `checkCache()` matches case-insensitively
 - **Stemmer:** in `dictionary.js`, tries progressively shorter suffixes if exact lookup fails; returns `stemInfo = { from, to }` for the UI stem notice
 - **Tooltip isolation:** `content.css` uses `dict-ext-` class prefix on all rules; CSS vars scoped to `.dict-ext-tooltip` not `:root`
-- **Theme:** `data-theme="dark"` on `<html>` element; CSS vars in `:root` and `[data-theme="dark"]` blocks; system theme detected via `window.matchMedia('(prefers-color-scheme: dark)')`
+- **Theme:** `data-theme="dark"` on `<html>` element; CSS vars in `:root` and `[data-theme="dark"]` blocks; system theme detected via `window.matchMedia('(prefers-color-scheme: dark)')`. Color palette from [colorhunt.co/palette/f4f0e444a194537d96ec8f8d](https://colorhunt.co/palette/f4f0e444a194537d96ec8f8d) — `#F4F0E4` cream, `#44A194` teal (primary accent), `#537D96` steel blue (etymology / secondary), `#EC8F8D` salmon (errors)
 - **TTS:** `speechSynthesis.speak(new SpeechSynthesisUtterance(word))` — no permissions needed; guarded by `typeof speechSynthesis !== 'undefined'`
 
 ## CI/CD
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `ci.yml` | Push / PR to `master` | Unit tests (101) · Playwright E2E · Manifest lint |
-| `data-release.yml` | GitHub release published | Build Wiktionary data · Upload `dictionary-data.tar.gz` |
+| `ci.yml` | Push / PR to `master` | Unit tests · Playwright E2E · Manifest lint (version sync check) |
+| `release.yml` | Tag push `v*.*.*` | Tests + Wiktionary data build (parallel) → package Chrome/Firefox zips + `dictionary-data.tar.gz` → GitHub release |
+| `version-bump.yml` | Manual dispatch | Bumps version in `manifest.json` + `package.json`, commits, pushes tag → triggers `release.yml` |
 
-**Important:** CI E2E uses `prepare-wordset.js`, not `prepare-wiktionary.js`. Both produce the same JSON shape. Wiktionary data is only built on tagged releases via `data-release.yml`.
+**Release flow:**
+1. Run `version-bump.yml` (dispatch: patch / minor / major) — bumps versions, pushes tag
+2. `release.yml` triggers automatically on the tag:
+   - `test` job: unit tests (5 files) + E2E with Wordset data (fast)
+   - `build-data` job: full Wiktionary build → `dictionary-data.tar.gz` (runs parallel with tests)
+   - `package` job: downloads data artifact, zips extension with Wiktionary data, creates GitHub release with all 3 assets
+3. Optionally: `publish-firefox` / `publish-chrome` (enabled via repo variables)
+
+**CI E2E uses `prepare-wordset.js`** (fast, ~30 s). Wiktionary data is built only in `release.yml`.
 
 ## Running Tests
 
