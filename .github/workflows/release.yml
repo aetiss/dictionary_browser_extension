@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Run unit tests
+        run: node --test tests/background.test.js tests/content.test.js tests/util.test.js tests/prepare-wordset.test.js
+
+      - name: Prepare dictionary data
+        run: node scripts/prepare-wordset.js
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        run: npx playwright test tests/e2e.spec.js
+
+  package:
+    name: Package & Release
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Prepare dictionary data
+        run: node scripts/prepare-wordset.js
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Update manifest version
+        run: |
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            m.version = '${{ steps.version.outputs.VERSION }}';
+            fs.writeFileSync('manifest.json', JSON.stringify(m, null, 4) + '\n');
+          "
+
+      - name: Package extension (Chrome)
+        run: |
+          mkdir -p dist
+          zip -r dist/dictionary-extension-chrome-v${{ steps.version.outputs.VERSION }}.zip \
+            manifest.json background.js content.js content.css \
+            browserAction/ options/ assets/ data/ \
+            -x "*.DS_Store"
+
+      - name: Package extension (Firefox — remove Chrome-only fields)
+        run: |
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            // Firefox MV3 uses background.scripts not service_worker
+            m.background = { scripts: ['background.js'] };
+            // web_accessible_resources can stay as-is for Firefox MV3
+            fs.writeFileSync('manifest-firefox.json', JSON.stringify(m, null, 4) + '\n');
+          "
+          cp manifest.json manifest-chrome-backup.json
+          cp manifest-firefox.json manifest.json
+          zip -r dist/dictionary-extension-firefox-v${{ steps.version.outputs.VERSION }}.zip \
+            manifest.json background.js content.js content.css \
+            browserAction/ options/ assets/ data/ \
+            -x "*.DS_Store"
+          cp manifest-chrome-backup.json manifest.json
+          rm manifest-firefox.json manifest-chrome-backup.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/dictionary-extension-chrome-v${{ steps.version.outputs.VERSION }}.zip
+            dist/dictionary-extension-firefox-v${{ steps.version.outputs.VERSION }}.zip

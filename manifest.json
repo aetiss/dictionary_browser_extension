@@ -1,9 +1,9 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Dictionary Browser Extension",
     "homepage_url": "https://github.com/aetiss/dictionary_browser_extension",
-    "version": "1.1",
-    "description": "Basic English Dictionary lookup addon/extension for Firefox providing meaning of word thats double-clicked selected on a webpage.",
+    "version": "3.0",
+    "description": "Double-click any word to see its definition instantly. No internet required.",
     "icons": {
         "64": "assets/icon_book_64.png"
     },
@@ -11,6 +11,9 @@
         "activeTab",
         "storage"
     ],
+    "background": {
+        "service_worker": "background.js"
+    },
     "content_scripts": [
         {
             "matches": [
@@ -18,10 +21,19 @@
             ],
             "js": [
                 "content.js"
+            ],
+            "css": [
+                "content.css"
             ]
         }
     ],
-    "browser_action": {
+    "web_accessible_resources": [
+        {
+            "resources": ["data/*.json"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "action": {
         "default_icon": {
             "64": "assets/icon_book_64.png"
         },
@@ -29,17 +41,19 @@
         "default_title": "English Dictionary"
     },
     "commands": {
-        "_execute_browser_action": {
-            "suggested_key": { "default": "Ctrl+Alt+S" },
+        "_execute_action": {
+            "suggested_key": { "default": "Ctrl+Shift+S" },
             "description": "search dictionary for selected keyword"
         }
     },
-    "web_accessible_resources": [
-        "options/options.html"
-    ],
     "options_ui": {
         "page": "options/options.html",
-        "browser_style": false,
         "open_in_tab": true
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "dictionary-browser-extension@aetiss",
+            "strict_min_version": "109.0"
+        }
     }
 }

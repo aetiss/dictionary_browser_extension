@@ -1,90 +1,64 @@
-const LocalStorage = window.browser.storage.local;
+const api = globalThis.browser ?? globalThis.chrome;
+const LocalStorage = api.storage.local;
 
-window.onload = function(){
-  let optionsLink = browser.runtime.getURL('options/options.html');
+const searchInput = document.getElementById('search');
+
+window.onload = function () {
+  const optionsLink = api.runtime.getURL('options/options.html');
   document.getElementById('optionsPage').setAttribute('href', optionsLink);
+
+  // Try to get selected word from the active tab
+  api.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    if (!tabs[0]) return;
+    const msg = { from: 'browserAction', msg: 'getText' };
+
+    const handleSelection = (message) => {
+      if (message && message.keyword && message.keyword.length > 0) {
+        searchInput.value = message.keyword;
+        searchWord(message.keyword);
+      }
+    };
+
+    if (globalThis.browser) {
+      api.tabs.sendMessage(tabs[0].id, msg).then(handleSelection, () => {});
+    } else {
+      api.tabs.sendMessage(tabs[0].id, msg, handleSelection);
+    }
+  });
 };
 
-// api call here
-function getDefinition(keyword, handleDefinition) {
-  const apiKey = config.API_KEY;
-  const reqURL = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${keyword}?key=${apiKey}`;
-  let response = {};
-  // GET request
-  const Http = new XMLHttpRequest();
-  Http.open('GET', reqURL, true);
-  Http.send(null);
-  // handle response
-  Http.onreadystatechange = () => {
-    if (Http.readyState == 4 && Http.status == 200) {
-      if (Http.responseText[0] === '[') {
-        response = {
-          success: true,
-          data: JSON.parse(Http.responseText),
-        };
-      } else {
-        response = {
-          success: false,
-          data: Http.responseText,
-        };
-      }
-      return handleDefinition(keyword, response);
-    }
-  };
-}
+// Search on Enter
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const word = searchInput.value.trim();
+    if (word) searchWord(word);
+  }
+});
 
-async function handleDefinition(keyword, response) {
-  if (!response.success) {
-    setMsg(response.data);
+async function searchWord(keyword) {
+  const isValid = validateKeyword(keyword);
+  if (!isValid) {
+    setMsg('Enter a single word');
     return;
   }
-  // check if word has homographs/multiple senses
-  let hasHomograph = false;
-  if (response.data[0].hasOwnProperty('hom')) hasHomograph = true;
-  await setCache(keyword, response.data, hasHomograph);
-  setDefinition(response.data, hasHomograph);
-}
 
-async function handleResponse(message) {
-  let keyword = document.getElementById('keyword');
+  // Check LRU cache first
+  const cached = await checkCache(keyword);
+  if (cached) {
+    setDefinition(cached.definition);
+    return;
+  }
 
-  let isKeywordValid = validateKeyword(message.keyword);
-
-  if (message.keyword.length > 0 && isKeywordValid) {
-    keyword.innerHTML = message.keyword;
-    let foundWord = await checkCache(message.keyword);
-    // set definition if cache returned not null
-    if (foundWord) setDefinition(foundWord.definition, foundWord.hasHomograph);
-    else getDefinition(message.keyword, handleDefinition);
-
-  } else {
-    // invalid or no keyword selected
-    setMsg('No/multiple words selected');
+  // Ask background service worker for lookup
+  try {
+    const response = await api.runtime.sendMessage({ action: 'lookup', word: keyword });
+    if (response && response.entry) {
+      await setCache(keyword, response.entry);
+      setDefinition(response.entry);
+    } else {
+      setMsg('Word not found');
+    }
+  } catch (err) {
+    setMsg('Error loading dictionary');
   }
 }
-
-function setMsg(errMsg) {
-  document.getElementById('keyword').innerHTML = 'Sorry';
-  document.getElementById('pos').innerHTML = '';
-  document.getElementById('text-result').innerHTML = errMsg;
-}
-
-function handleError(error) {
-  console.log(`Error: ${error}`);
-}
-
-(() => {
-  browser.tabs.query(
-    {
-      active: true,
-      currentWindow: true,
-    },
-    function (tabs) {
-      var sender = browser.tabs.sendMessage(tabs[0].id, {
-        from: 'browserAction',
-        msg: 'getText',
-      });
-      sender.then(handleResponse, handleError);
-    },
-  );
-})();
