@@ -1,0 +1,87 @@
+name: Bump Version & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: Bump version and tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get current version from manifest
+        id: current
+        run: |
+          VERSION=$(node -p "JSON.parse(require('fs').readFileSync('manifest.json','utf8')).version")
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Current version: $VERSION"
+
+      - name: Calculate next version
+        id: next
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ steps.current.outputs.VERSION }}"
+          case "${{ inputs.bump }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          NEXT="${major}.${minor}.${patch}"
+          echo "VERSION=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Next version: $NEXT"
+
+      - name: Update manifest.json version
+        run: |
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            m.version = '${{ steps.next.outputs.VERSION }}';
+            fs.writeFileSync('manifest.json', JSON.stringify(m, null, 4) + '\n');
+          "
+
+      - name: Update package.json version
+        run: |
+          node -e "
+            const fs = require('fs');
+            const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            p.version = '${{ steps.next.outputs.VERSION }}';
+            fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+          "
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json package.json
+          git commit -m "chore: bump version to ${{ steps.next.outputs.VERSION }}"
+          git push
+
+      - name: Create and push tag
+        run: |
+          git tag "v${{ steps.next.outputs.VERSION }}"
+          git push origin "v${{ steps.next.outputs.VERSION }}"
+
+      - name: Summary
+        run: |
+          echo "### Version bumped" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **From:** ${{ steps.current.outputs.VERSION }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **To:** ${{ steps.next.outputs.VERSION }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Tag:** v${{ steps.next.outputs.VERSION }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The release workflow will now run automatically." >> "$GITHUB_STEP_SUMMARY"
