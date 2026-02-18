@@ -4,10 +4,6 @@
     <meta charset="utf-8" />
     <title>Options</title>
     <link rel="stylesheet" href="options.css" />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,500;1,400;1,500&display=swap"
-    />
   </head>
   <body>
     <div class="container">
@@ -33,8 +29,13 @@
       <div class="switch-container">
         Choose Theme:
         <label class="radio-container"
+          >System
+          <input type="radio" id="system-theme" name="theme" value="system" checked="checked" />
+          <span class="checkmark"></span>
+        </label>
+        <label class="radio-container"
           >Light
-          <input type="radio" id="light-theme" name="theme" value="light" checked="checked" />
+          <input type="radio" id="light-theme" name="theme" value="light" />
           <span class="checkmark"></span>
         </label>
         <label class="radio-container"

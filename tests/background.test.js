@@ -13,6 +13,10 @@ function loadBackground(mockApi, mockFetch) {
     globalThis: { browser: mockApi },
     fetch: mockFetch,
     console,
+    Object,
+    Array,
+    Set,
+    Math,
   };
   vm.createContext(context);
   vm.runInContext(code, context);
@@ -53,8 +57,109 @@ describe('background.js', () => {
     });
   });
 
+  describe('stemWord', () => {
+    let ctx;
+
+    beforeEach(() => {
+      const mockApi = {
+        runtime: {
+          getURL: (p) => `chrome-extension://abc/${p}`,
+          onMessage: { addListener: () => {} },
+        },
+      };
+      ctx = loadBackground(mockApi, async () => ({ json: async () => ({}) }));
+    });
+
+    it('stems -ing words', () => {
+      const candidates = ctx.stemWord('playing');
+      assert.ok(candidates.includes('play'));
+    });
+
+    it('stems -ing with e-drop', () => {
+      const candidates = ctx.stemWord('making');
+      assert.ok(candidates.includes('make'));
+    });
+
+    it('stems -ing with doubled consonant', () => {
+      const candidates = ctx.stemWord('running');
+      assert.ok(candidates.includes('run'));
+    });
+
+    it('stems -s plurals', () => {
+      const candidates = ctx.stemWord('cats');
+      assert.ok(candidates.includes('cat'));
+    });
+
+    it('stems -es plurals', () => {
+      const candidates = ctx.stemWord('boxes');
+      assert.ok(candidates.includes('box'));
+    });
+
+    it('stems -ies to -y', () => {
+      const candidates = ctx.stemWord('babies');
+      assert.ok(candidates.includes('baby'));
+    });
+
+    it('stems -ed words', () => {
+      const candidates = ctx.stemWord('walked');
+      assert.ok(candidates.includes('walk'));
+    });
+
+    it('stems -ed with e-drop', () => {
+      const candidates = ctx.stemWord('liked');
+      assert.ok(candidates.includes('like'));
+    });
+
+    it('stems -ly words', () => {
+      const candidates = ctx.stemWord('quickly');
+      assert.ok(candidates.includes('quick'));
+    });
+
+    it('stems -ness words', () => {
+      const candidates = ctx.stemWord('darkness');
+      assert.ok(candidates.includes('dark'));
+    });
+
+    it('returns empty for short words', () => {
+      const candidates = ctx.stemWord('is');
+      assert.equal(candidates.length, 0);
+    });
+
+    it('does not include the original word', () => {
+      const candidates = ctx.stemWord('playing');
+      assert.ok(!candidates.includes('playing'));
+    });
+  });
+
+  describe('editDistance', () => {
+    let ctx;
+
+    beforeEach(() => {
+      const mockApi = {
+        runtime: {
+          getURL: (p) => `chrome-extension://abc/${p}`,
+          onMessage: { addListener: () => {} },
+        },
+      };
+      ctx = loadBackground(mockApi, async () => ({ json: async () => ({}) }));
+    });
+
+    it('returns 0 for identical strings', () => {
+      assert.equal(ctx.editDistance('hello', 'hello'), 0);
+    });
+
+    it('returns correct distance for similar strings', () => {
+      assert.equal(ctx.editDistance('cat', 'car'), 1);
+      assert.equal(ctx.editDistance('kitten', 'sitten'), 1);
+    });
+
+    it('returns 999 for very different lengths', () => {
+      assert.equal(ctx.editDistance('a', 'abcde'), 999);
+    });
+  });
+
   describe('lookupWord', () => {
-    it('returns entry when word exists', async () => {
+    it('returns { entry } when word exists', async () => {
       const mockData = {
         hello: {
           word: 'hello',
@@ -70,11 +175,11 @@ describe('background.js', () => {
       const mockFetch = async () => ({ json: async () => mockData });
       const ctx = loadBackground(mockApi, mockFetch);
 
-      const entry = await ctx.lookupWord('hello');
-      assert.deepEqual(entry, mockData.hello);
+      const result = await ctx.lookupWord('hello');
+      assert.deepEqual(JSON.parse(JSON.stringify(result)), { entry: mockData.hello });
     });
 
-    it('returns null when word does not exist', async () => {
+    it('returns { entry: null, suggestions } when word does not exist', async () => {
       const mockApi = {
         runtime: {
           getURL: (p) => `chrome-extension://abc/${p}`,
@@ -84,8 +189,9 @@ describe('background.js', () => {
       const mockFetch = async () => ({ json: async () => ({}) });
       const ctx = loadBackground(mockApi, mockFetch);
 
-      const entry = await ctx.lookupWord('nonexistentword');
-      assert.equal(entry, null);
+      const result = await ctx.lookupWord('nonexistentword');
+      assert.equal(result.entry, null);
+      assert.ok(Array.isArray(result.suggestions));
     });
 
     it('normalizes word to lowercase', async () => {
@@ -104,11 +210,11 @@ describe('background.js', () => {
       const mockFetch = async () => ({ json: async () => mockData });
       const ctx = loadBackground(mockApi, mockFetch);
 
-      const entry = await ctx.lookupWord('HELLO');
-      assert.deepEqual(entry, mockData.hello);
+      const result = await ctx.lookupWord('HELLO');
+      assert.deepEqual(JSON.parse(JSON.stringify(result)), { entry: mockData.hello });
     });
 
-    it('returns null for empty string', async () => {
+    it('returns { entry: null } for empty string', async () => {
       const mockApi = {
         runtime: {
           getURL: (p) => `chrome-extension://abc/${p}`,
@@ -118,20 +224,30 @@ describe('background.js', () => {
       const mockFetch = async () => ({ json: async () => ({}) });
       const ctx = loadBackground(mockApi, mockFetch);
 
-      assert.equal(await ctx.lookupWord(''), null);
+      const result = JSON.parse(JSON.stringify(await ctx.lookupWord('')));
+      assert.deepEqual(result, { entry: null });
     });
 
-    it('returns null for multi-word input', async () => {
+    it('returns stemmed match with stemmedFrom/stemmedTo', async () => {
+      const mockData = {
+        cat: {
+          word: 'cat',
+          meanings: [{ def: 'a small animal', speech_part: 'noun' }],
+        },
+      };
       const mockApi = {
         runtime: {
           getURL: (p) => `chrome-extension://abc/${p}`,
           onMessage: { addListener: () => {} },
         },
       };
-      const mockFetch = async () => ({ json: async () => ({}) });
+      const mockFetch = async () => ({ json: async () => mockData });
       const ctx = loadBackground(mockApi, mockFetch);
 
-      assert.equal(await ctx.lookupWord('two words'), null);
+      const result = JSON.parse(JSON.stringify(await ctx.lookupWord('cats')));
+      assert.deepEqual(result.entry, mockData.cat);
+      assert.equal(result.stemmedFrom, 'cats');
+      assert.equal(result.stemmedTo, 'cat');
     });
 
     it('caches letter data and reuses it', async () => {
@@ -159,7 +275,7 @@ describe('background.js', () => {
   });
 
   describe('onMessage listener', () => {
-    it('responds to lookup action', async () => {
+    it('responds to lookup action with new format', async () => {
       const mockData = {
         test: { word: 'test', meanings: [{ def: 'a trial', speech_part: 'noun' }] },
       };
@@ -184,7 +300,7 @@ describe('background.js', () => {
         assert.equal(returnValue, true, 'should return true for async');
       });
 
-      assert.deepEqual(JSON.parse(JSON.stringify(result)), { entry: mockData.test });
+      assert.deepEqual(result.entry, mockData.test);
     });
 
     it('ignores messages without lookup action', () => {

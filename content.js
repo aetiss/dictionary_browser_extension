@@ -2,16 +2,70 @@ const api = globalThis.browser ?? globalThis.chrome;
 
 let currentTooltip = null;
 let selectedText = '';
+let themeSetting = 'system';
 
 const getSelectedText = () => window.getSelection().toString().trim();
 
+// --- Theme awareness ---
+
+function resolveTheme(setting) {
+  if (setting === 'dark' || setting === 'light') return setting;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+(async function loadTheme() {
+  const store = await api.storage.local.get('theme');
+  themeSetting = store.theme || 'system';
+})();
+
+api.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.theme) {
+    themeSetting = changes.theme.newValue || 'system';
+    if (currentTooltip) {
+      currentTooltip.classList.toggle('dark-theme', resolveTheme(themeSetting) === 'dark');
+    }
+  }
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (themeSetting === 'system' && currentTooltip) {
+    currentTooltip.classList.toggle('dark-theme', resolveTheme('system') === 'dark');
+  }
+});
+
+// --- Tooltip helpers ---
+
+function applyTheme(tooltip) {
+  if (resolveTheme(themeSetting) === 'dark') tooltip.classList.add('dark-theme');
+}
+
+function positionTooltip(tooltip, rect) {
+  tooltip.style.top = `${rect.bottom + window.scrollY + 6}px`;
+  tooltip.style.left = `${rect.left + window.scrollX}px`;
+  document.body.appendChild(tooltip);
+
+  const tooltipRect = tooltip.getBoundingClientRect();
+  if (tooltipRect.right > window.innerWidth - 8) {
+    tooltip.style.left = `${window.innerWidth - tooltipRect.width - 8 + window.scrollX}px`;
+  }
+}
+
 // --- Tooltip rendering ---
 
-function createTooltip(entry, rect) {
+function createTooltip(entry, rect, stemInfo) {
   removeTooltip();
 
   const tooltip = document.createElement('div');
   tooltip.className = 'dict-ext-tooltip';
+  applyTheme(tooltip);
+
+  // Stem notice
+  if (stemInfo) {
+    const notice = document.createElement('div');
+    notice.className = 'dict-ext-stem-notice';
+    notice.textContent = stemInfo.from + ' \u2192 ' + stemInfo.to;
+    tooltip.appendChild(notice);
+  }
 
   // Word + part of speech header
   const header = document.createElement('div');
@@ -66,20 +120,36 @@ function createTooltip(entry, rect) {
   footer.appendChild(link);
   tooltip.appendChild(footer);
 
-  // Position tooltip
-  const top = rect.bottom + window.scrollY + 6;
-  let left = rect.left + window.scrollX;
-  tooltip.style.top = `${top}px`;
-  tooltip.style.left = `${left}px`;
+  positionTooltip(tooltip, rect);
+  currentTooltip = tooltip;
+}
 
-  document.body.appendChild(tooltip);
+function showSuggestionsTooltip(word, suggestions, rect) {
+  removeTooltip();
 
-  // Adjust if overflowing right edge
-  const tooltipRect = tooltip.getBoundingClientRect();
-  if (tooltipRect.right > window.innerWidth - 8) {
-    tooltip.style.left = `${window.innerWidth - tooltipRect.width - 8 + window.scrollX}px`;
+  const tooltip = document.createElement('div');
+  tooltip.className = 'dict-ext-tooltip';
+  applyTheme(tooltip);
+
+  const msg = document.createElement('div');
+  msg.className = 'dict-ext-notfound';
+  msg.textContent = `"${word}" not found`;
+  tooltip.appendChild(msg);
+
+  if (suggestions.length > 0) {
+    const container = document.createElement('div');
+    container.className = 'dict-ext-suggestions';
+    container.textContent = 'Similar: ';
+    suggestions.forEach((s) => {
+      const tag = document.createElement('span');
+      tag.className = 'dict-ext-suggestion';
+      tag.textContent = s;
+      container.appendChild(tag);
+    });
+    tooltip.appendChild(container);
   }
 
+  positionTooltip(tooltip, rect);
   currentTooltip = tooltip;
 }
 
@@ -88,17 +158,14 @@ function showNotFound(word, rect) {
 
   const tooltip = document.createElement('div');
   tooltip.className = 'dict-ext-tooltip';
+  applyTheme(tooltip);
 
   const msg = document.createElement('div');
   msg.className = 'dict-ext-notfound';
   msg.textContent = `"${word}" not found in dictionary`;
   tooltip.appendChild(msg);
 
-  const top = rect.bottom + window.scrollY + 6;
-  tooltip.style.top = `${top}px`;
-  tooltip.style.left = `${rect.left + window.scrollX}px`;
-
-  document.body.appendChild(tooltip);
+  positionTooltip(tooltip, rect);
   currentTooltip = tooltip;
 }
 
@@ -124,7 +191,12 @@ document.addEventListener('dblclick', async (e) => {
   try {
     const response = await api.runtime.sendMessage({ action: 'lookup', word });
     if (response && response.entry) {
-      createTooltip(response.entry, rect);
+      const stemInfo = response.stemmedFrom
+        ? { from: response.stemmedFrom, to: response.stemmedTo }
+        : null;
+      createTooltip(response.entry, rect, stemInfo);
+    } else if (response && response.suggestions && response.suggestions.length > 0) {
+      showSuggestionsTooltip(word, response.suggestions, rect);
     } else {
       showNotFound(word, rect);
     }
@@ -145,7 +217,7 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('scroll', removeTooltip, { passive: true });
 
-// --- Popup messaging (backward compat) ---
+// --- Popup messaging ---
 
 api.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.from === 'browserAction') {

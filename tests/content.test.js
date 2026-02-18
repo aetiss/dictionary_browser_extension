@@ -17,12 +17,21 @@ function createMockDOM() {
       target: '',
       style: {},
       children: [],
+      classList: {
+        _classes: new Set(),
+        add(c) { this._classes.add(c); },
+        remove(c) { this._classes.delete(c); },
+        contains(c) { return this._classes.has(c); },
+        toggle(c, force) {
+          if (force) this._classes.add(c);
+          else this._classes.delete(c);
+        },
+      },
       appendChild(child) { this.children.push(child); },
       contains(other) {
         return this.children.includes(other);
       },
       remove() {
-        // Remove from body's children array
         const idx = bodyChildren.indexOf(el);
         if (idx >= 0) bodyChildren.splice(idx, 1);
       },
@@ -68,11 +77,15 @@ function loadContent(mockApi) {
     scrollY: 0,
     scrollX: 0,
     innerWidth: 1024,
+    matchMedia: () => ({
+      matches: false,
+      addEventListener: () => {},
+    }),
   };
 
   const wrappedCode = `
     ${code}
-    __exports = { createTooltip, showNotFound, removeTooltip, getSelectedText };
+    __exports = { createTooltip, showNotFound, showSuggestionsTooltip, removeTooltip, getSelectedText };
     __state = { get currentTooltip() { return currentTooltip; } };
   `;
 
@@ -81,6 +94,7 @@ function loadContent(mockApi) {
     window: mockWindow,
     document: mockDocument,
     console,
+    Set,
     __exports: {},
     __state: {},
   };
@@ -89,16 +103,23 @@ function loadContent(mockApi) {
   return { ctx: context.__exports, state: context.__state, eventListeners, bodyChildren };
 }
 
+function createMockApi() {
+  return {
+    runtime: {
+      sendMessage: async () => ({}),
+      onMessage: { addListener: () => {} },
+    },
+    storage: {
+      local: { get: async () => ({}) },
+      onChanged: { addListener: () => {} },
+    },
+  };
+}
+
 describe('content.js', () => {
   describe('createTooltip', () => {
     it('creates a tooltip with word and definitions', () => {
-      const mockApi = {
-        runtime: {
-          sendMessage: async () => ({}),
-          onMessage: { addListener: () => {} },
-        },
-      };
-      const { ctx, bodyChildren } = loadContent(mockApi);
+      const { ctx, bodyChildren } = loadContent(createMockApi());
 
       const entry = {
         word: 'hello',
@@ -122,14 +143,27 @@ describe('content.js', () => {
       assert.equal(header.children[1].textContent, 'noun');
     });
 
-    it('limits definitions to 3', () => {
-      const mockApi = {
-        runtime: {
-          sendMessage: async () => ({}),
-          onMessage: { addListener: () => {} },
-        },
+    it('shows stem notice when stemInfo provided', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
+
+      const entry = {
+        word: 'cat',
+        meanings: [{ def: 'a small animal', speech_part: 'noun' }],
       };
-      const { ctx, bodyChildren } = loadContent(mockApi);
+      const stemInfo = { from: 'cats', to: 'cat' };
+
+      ctx.createTooltip(entry, { bottom: 100, left: 50 }, stemInfo);
+
+      const tooltip = bodyChildren[0];
+      // First child should be stem notice
+      assert.equal(tooltip.children[0].className, 'dict-ext-stem-notice');
+      assert.equal(tooltip.children[0].textContent, 'cats \u2192 cat');
+      // Header is second child
+      assert.equal(tooltip.children[1].className, 'dict-ext-header');
+    });
+
+    it('limits definitions to 3', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
 
       const entry = {
         word: 'test',
@@ -150,13 +184,7 @@ describe('content.js', () => {
     });
 
     it('includes example when present', () => {
-      const mockApi = {
-        runtime: {
-          sendMessage: async () => ({}),
-          onMessage: { addListener: () => {} },
-        },
-      };
-      const { ctx, bodyChildren } = loadContent(mockApi);
+      const { ctx, bodyChildren } = loadContent(createMockApi());
 
       const entry = {
         word: 'hello',
@@ -168,22 +196,31 @@ describe('content.js', () => {
       const tooltip = bodyChildren[0];
       const defs = tooltip.children[1];
       const firstDef = defs.children[0];
-      // Should have an example child
       const exampleEl = firstDef.children[0];
       assert.equal(exampleEl.className, 'dict-ext-example');
       assert.equal(exampleEl.textContent, '"Say hello!"');
     });
   });
 
+  describe('showSuggestionsTooltip', () => {
+    it('shows not-found message with suggestions', () => {
+      const { ctx, bodyChildren } = loadContent(createMockApi());
+
+      ctx.showSuggestionsTooltip('helo', ['hello', 'help', 'held'], { bottom: 100, left: 50 });
+
+      assert.equal(bodyChildren.length, 1);
+      const tooltip = bodyChildren[0];
+      assert.equal(tooltip.children[0].className, 'dict-ext-notfound');
+      assert.equal(tooltip.children[0].textContent, '"helo" not found');
+      // Suggestions container
+      assert.equal(tooltip.children[1].className, 'dict-ext-suggestions');
+      assert.equal(tooltip.children[1].children.length, 3);
+    });
+  });
+
   describe('removeTooltip', () => {
     it('removes existing tooltip', () => {
-      const mockApi = {
-        runtime: {
-          sendMessage: async () => ({}),
-          onMessage: { addListener: () => {} },
-        },
-      };
-      const { ctx, state, bodyChildren } = loadContent(mockApi);
+      const { ctx, state, bodyChildren } = loadContent(createMockApi());
 
       ctx.createTooltip(
         { word: 'test', meanings: [{ def: 'x', speech_part: 'noun' }] },
@@ -197,13 +234,7 @@ describe('content.js', () => {
     });
 
     it('does nothing when no tooltip exists', () => {
-      const mockApi = {
-        runtime: {
-          sendMessage: async () => ({}),
-          onMessage: { addListener: () => {} },
-        },
-      };
-      const { ctx, state } = loadContent(mockApi);
+      const { ctx, state } = loadContent(createMockApi());
 
       ctx.removeTooltip(); // should not throw
       assert.equal(state.currentTooltip, null);
@@ -212,13 +243,7 @@ describe('content.js', () => {
 
   describe('showNotFound', () => {
     it('shows not-found message', () => {
-      const mockApi = {
-        runtime: {
-          sendMessage: async () => ({}),
-          onMessage: { addListener: () => {} },
-        },
-      };
-      const { ctx, bodyChildren } = loadContent(mockApi);
+      const { ctx, bodyChildren } = loadContent(createMockApi());
 
       ctx.showNotFound('xyzzy', { bottom: 100, left: 50 });
 
@@ -239,6 +264,10 @@ describe('content.js', () => {
           onMessage: {
             addListener: (fn) => { messageListener = fn; },
           },
+        },
+        storage: {
+          local: { get: async () => ({}) },
+          onChanged: { addListener: () => {} },
         },
       };
       loadContent(mockApi);
