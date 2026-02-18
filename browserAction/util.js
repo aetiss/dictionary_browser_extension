@@ -1,3 +1,6 @@
+const api = globalThis.browser ?? globalThis.chrome;
+const LocalStorage = api.storage.local;
+
 const hasWhiteSpace = (word) => /\s/g.test(word);
 
 const validateKeyword = (keyword) => !hasWhiteSpace(keyword);
@@ -18,10 +21,11 @@ async function checkCache(keyword) {
   return foundWord;
 }
 
-async function setCache(keyword, entry) {
+async function setCache(keyword, entry, stemInfo) {
   const newRecentWord = {
     originalSearch: keyword.toLowerCase(),
     definition: entry,
+    stemInfo: stemInfo || null,
   };
   let store = await LocalStorage.get('recentWords');
   if (!store.recentWords) store.recentWords = [];
@@ -30,10 +34,11 @@ async function setCache(keyword, entry) {
   LocalStorage.set(store);
 }
 
-function setDefinition(entry) {
+function setDefinition(entry, stemInfo) {
   const resultEl = document.getElementById('result');
   const emptyEl = document.getElementById('empty-state');
   const errorEl = document.getElementById('error-state');
+  const stemNotice = document.getElementById('stem-notice');
   const keywordEl = document.getElementById('keyword');
   const posEl = document.getElementById('pos');
   const resultText = document.getElementById('text-result');
@@ -43,6 +48,14 @@ function setDefinition(entry) {
   resultEl.classList.remove('hidden');
   emptyEl.classList.add('hidden');
   errorEl.classList.add('hidden');
+
+  // Stem notice
+  if (stemInfo) {
+    stemNotice.classList.remove('hidden');
+    stemNotice.textContent = stemInfo.from + ' \u2192 ' + stemInfo.to;
+  } else {
+    stemNotice.classList.add('hidden');
+  }
 
   // Word
   keywordEl.textContent = entry.word;
@@ -93,7 +106,7 @@ function setDefinition(entry) {
     if (uniqueSynonyms.length > 0) {
       const synDiv = document.createElement('div');
       synDiv.className = 'synonyms';
-      synDiv.textContent = 'Synonyms: ' + uniqueSynonyms.join(', ');
+      synDiv.textContent = 'syn: ' + uniqueSynonyms.join(', ');
       resultText.appendChild(synDiv);
     }
   }

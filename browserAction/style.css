@@ -1,3 +1,35 @@
+/* --- Theme variables --- */
+:root {
+  --font: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono',
+          'Consolas', 'Monaco', 'Courier New', monospace;
+  --bg: #fafbfc;
+  --bg-alt: #f0f1f3;
+  --bg-input: #ffffff;
+  --text: #24292f;
+  --text-sec: #57606a;
+  --text-muted: #8b949e;
+  --accent: #0969da;
+  --border: #d0d7de;
+  --border-light: #e8eaed;
+  --error: #cf222e;
+  --link: #0969da;
+}
+
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --bg-alt: #161b22;
+  --bg-input: #0d1117;
+  --text: #e6edf3;
+  --text-sec: #c9d1d9;
+  --text-muted: #8b949e;
+  --accent: #58a6ff;
+  --border: #30363d;
+  --border-light: #21262d;
+  --error: #f85149;
+  --link: #58a6ff;
+}
+
+/* --- Base --- */
 * {
   margin: 0;
   padding: 0;
@@ -5,45 +37,59 @@
 }
 
 body {
-  width: 360px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  color: #1a1a1a;
-  background: #fff;
+  width: 380px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
 }
 
 .hidden {
   display: none !important;
 }
 
-/* Search bar */
+/* --- Search bar --- */
 .search-container {
   padding: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-light);
 }
 
 #search {
   width: 100%;
-  padding: 8px 12px;
-  font-size: 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--font);
+  border: 1px solid var(--border);
+  border-radius: 4px;
   outline: none;
-  font-family: inherit;
+  background: var(--bg-input);
+  color: var(--text);
   transition: border-color 0.15s;
 }
 
 #search:focus {
-  border-color: #4a9ebb;
+  border-color: var(--accent);
 }
 
 #search::placeholder {
-  color: #aaa;
+  color: var(--text-muted);
 }
 
-/* Result area */
+/* --- Result area --- */
 .result {
   padding: 12px 14px 8px;
+}
+
+.stem-notice {
+  padding: 3px 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+  border-radius: 3px;
+  border: 1px solid var(--border-light);
+  letter-spacing: 0.3px;
 }
 
 .word-header {
@@ -54,30 +100,34 @@ body {
 }
 
 .keyword {
-  font-size: 20px;
-  font-weight: 600;
-  color: #111;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .pos {
-  font-size: 13px;
+  font-size: 11px;
   font-style: italic;
-  color: #666;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Definitions */
+/* --- Definitions --- */
 .text-result {
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .section-pos {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #4a9ebb;
+  letter-spacing: 0.8px;
+  color: var(--accent);
   margin-top: 10px;
   margin-bottom: 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .section-pos:first-child {
@@ -85,41 +135,46 @@ body {
 }
 
 .def-list {
-  margin: 0;
+  margin: 4px 0;
   padding-left: 22px;
 }
 
 .def-list li {
   padding: 2px 0;
-  color: #333;
+  color: var(--text-sec);
+}
+
+.def-list li::marker {
+  color: var(--text-muted);
+  font-size: 11px;
 }
 
 .example {
   margin-top: 2px;
   font-style: italic;
-  color: #888;
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .synonyms {
   margin-top: 4px;
   padding-left: 2px;
-  font-size: 12px;
-  color: #999;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
-/* Footer */
+/* --- Footer --- */
 .footer {
   display: flex;
   justify-content: space-between;
   margin-top: 12px;
   padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-light);
 }
 
 .footer a {
-  font-size: 12px;
-  color: #4a9ebb;
+  font-size: 11px;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -127,15 +182,42 @@ body {
   text-decoration: underline;
 }
 
-/* Empty / error states */
+/* --- Empty / error / suggestions --- */
 .empty-state,
 .error-state {
   padding: 24px 14px;
   text-align: center;
-  color: #999;
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .error-state {
-  color: #c0392b;
+  color: var(--error);
+}
+
+.suggestions {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.suggestion-link {
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--link);
+  text-decoration: none;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-alt);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.suggestion-link:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
 }

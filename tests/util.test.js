@@ -47,15 +47,21 @@ function loadUtil(mockLocalStorage) {
   );
   const { mockDocument, elements } = createMockDOM();
 
-  // Wrap code to capture const/arrow functions as properties on an export object
   const wrappedCode = `
     ${code}
     __exports = { hasWhiteSpace, validateKeyword, checkCache, setCache, setDefinition, setMsg };
   `;
   const context = {
+    globalThis: {
+      browser: {
+        storage: { local: mockLocalStorage },
+      },
+    },
     LocalStorage: mockLocalStorage,
     document: mockDocument,
     console,
+    Set,
+    Object,
     __exports: {},
   };
   vm.createContext(context);
@@ -106,6 +112,7 @@ describe('util.js', () => {
       const cachedEntry = {
         originalSearch: 'hello',
         definition: { word: 'hello', meanings: [] },
+        stemInfo: null,
       };
       const mock = {
         get: async () => ({ recentWords: [cachedEntry] }),
@@ -121,6 +128,7 @@ describe('util.js', () => {
       const cachedEntry = {
         originalSearch: 'hello',
         definition: { word: 'hello', meanings: [] },
+        stemInfo: null,
       };
       const mock = {
         get: async () => ({ recentWords: [cachedEntry] }),
@@ -136,6 +144,7 @@ describe('util.js', () => {
       const cachedEntry = {
         originalSearch: 'world',
         definition: { word: 'world', meanings: [] },
+        stemInfo: null,
       };
       const mock = {
         get: async () => ({ recentWords: [cachedEntry] }),
@@ -149,7 +158,7 @@ describe('util.js', () => {
   });
 
   describe('setCache', () => {
-    it('adds new word to cache', async () => {
+    it('adds new word to cache with stemInfo', async () => {
       let stored = null;
       const mock = {
         get: async () => ({ recentWords: [] }),
@@ -158,17 +167,33 @@ describe('util.js', () => {
       const { ctx } = loadUtil(mock);
 
       const entry = { word: 'hello', meanings: [] };
-      await ctx.setCache('Hello', entry);
+      const stemInfo = { from: 'hellos', to: 'hello' };
+      await ctx.setCache('Hello', entry, stemInfo);
 
       assert.equal(stored.recentWords.length, 1);
       assert.equal(stored.recentWords[0].originalSearch, 'hello');
       assert.deepEqual(stored.recentWords[0].definition, entry);
+      assert.deepEqual(stored.recentWords[0].stemInfo, stemInfo);
+    });
+
+    it('stores null stemInfo when not provided', async () => {
+      let stored = null;
+      const mock = {
+        get: async () => ({ recentWords: [] }),
+        set: (data) => { stored = data; },
+      };
+      const { ctx } = loadUtil(mock);
+
+      await ctx.setCache('Hello', { word: 'hello', meanings: [] });
+
+      assert.equal(stored.recentWords[0].stemInfo, null);
     });
 
     it('evicts oldest entry when cache is full (20 words)', async () => {
       const existing = Array.from({ length: 20 }, (_, i) => ({
         originalSearch: `word${i}`,
         definition: { word: `word${i}`, meanings: [] },
+        stemInfo: null,
       }));
       let stored = null;
       const mock = {
@@ -181,7 +206,6 @@ describe('util.js', () => {
 
       assert.equal(stored.recentWords.length, 20);
       assert.equal(stored.recentWords[0].originalSearch, 'newword');
-      // oldest (word19) should be evicted
       assert.equal(
         stored.recentWords.find((w) => w.originalSearch === 'word19'),
         undefined,
@@ -228,6 +252,38 @@ describe('util.js', () => {
       assert.ok(emptyState.classList.contains('hidden'));
     });
 
+    it('shows stem notice when stemInfo provided', () => {
+      const mock = { get: async () => ({}), set: () => {} };
+      const { ctx, elements } = loadUtil(mock);
+
+      const entry = {
+        word: 'cat',
+        meanings: [{ def: 'a small animal', speech_part: 'noun' }],
+      };
+      const stemInfo = { from: 'cats', to: 'cat' };
+
+      ctx.setDefinition(entry, stemInfo);
+
+      const stemNotice = elements['stem-notice'];
+      assert.ok(!stemNotice.classList.contains('hidden'));
+      assert.equal(stemNotice.textContent, 'cats \u2192 cat');
+    });
+
+    it('hides stem notice when no stemInfo', () => {
+      const mock = { get: async () => ({}), set: () => {} };
+      const { ctx, elements } = loadUtil(mock);
+
+      const entry = {
+        word: 'hello',
+        meanings: [{ def: 'a greeting', speech_part: 'noun' }],
+      };
+
+      ctx.setDefinition(entry);
+
+      const stemNotice = elements['stem-notice'];
+      assert.ok(stemNotice.classList.contains('hidden'));
+    });
+
     it('sets wiktionary source link', () => {
       const mock = { get: async () => ({}), set: () => {} };
       const { ctx, elements } = loadUtil(mock);
@@ -259,7 +315,6 @@ describe('util.js', () => {
       ctx.setDefinition(entry);
 
       const resultText = elements['text-result'];
-      // Should have section labels for verb and noun
       const sectionLabels = resultText.children
         .filter((c) => c.className === 'section-pos')
         .map((c) => c.textContent);

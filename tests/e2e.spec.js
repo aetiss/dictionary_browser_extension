@@ -4,6 +4,8 @@ const path = require('path');
 const EXTENSION_PATH = path.join(__dirname, '..');
 
 test.describe('Dictionary Extension E2E — Random Wikipedia Page', () => {
+  test.describe.configure({ retries: 2 });
+
   let context;
 
   test.beforeAll(async () => {
@@ -37,15 +39,17 @@ test.describe('Dictionary Extension E2E — Random Wikipedia Page', () => {
     // Wait for a paragraph that actually has visible text
     await page.waitForSelector('#mw-content-text p:not(.mw-empty-elt)', { timeout: 10000 });
 
-    // Find a good word to double-click
+    // Find a good word to double-click — only from direct text nodes in <p> tags
+    // (avoid links, spans, and other inline elements that may interfere with selection)
     const targetWord = await page.evaluate(() => {
       const paragraphs = document.querySelectorAll('#mw-content-text p:not(.mw-empty-elt)');
       for (const p of paragraphs) {
-        const text = p.textContent;
-        if (text && text.trim().length > 50) {
-          const words = text.match(/\b[a-z]{4,10}\b/g);
+        // Walk only direct text nodes to avoid words inside <a>, <b>, <span> etc.
+        for (const node of p.childNodes) {
+          if (node.nodeType !== Node.TEXT_NODE) continue;
+          const words = node.textContent.match(/\b[a-z]{4,10}\b/g);
           if (words && words.length > 0) {
-            return words[Math.min(3, words.length - 1)];
+            return words[0];
           }
         }
       }
@@ -81,8 +85,8 @@ test.describe('Dictionary Extension E2E — Random Wikipedia Page', () => {
 
     await page.mouse.dblclick(wordBounds.x, wordBounds.y);
 
-    // Wait for any tooltip (found or not-found)
-    const tooltip = await page.waitForSelector('.dict-ext-tooltip', { timeout: 5000 });
+    // Wait for any tooltip (found or not-found) — generous timeout for CI
+    const tooltip = await page.waitForSelector('.dict-ext-tooltip', { timeout: 10000 });
     expect(tooltip).toBeTruthy();
 
     const tooltipText = await tooltip.textContent();
