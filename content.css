@@ -1,0 +1,70 @@
+.dict-ext-tooltip {
+  position: absolute;
+  z-index: 2147483647;
+  max-width: 320px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #1a1a1a;
+}
+
+.dict-ext-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dict-ext-word {
+  font-size: 17px;
+  font-weight: 600;
+  color: #111;
+}
+
+.dict-ext-pos {
+  font-size: 12px;
+  font-style: italic;
+  color: #666;
+}
+
+.dict-ext-defs {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.dict-ext-def {
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.dict-ext-example {
+  margin-top: 2px;
+  font-style: italic;
+  color: #777;
+  font-size: 13px;
+}
+
+.dict-ext-footer {
+  margin-top: 8px;
+  text-align: right;
+}
+
+.dict-ext-link {
+  font-size: 12px;
+  color: #4a9ebb;
+  text-decoration: none;
+}
+
+.dict-ext-link:hover {
+  text-decoration: underline;
+}
+
+.dict-ext-notfound {
+  color: #888;
+  font-style: italic;
+}

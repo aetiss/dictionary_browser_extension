@@ -1,9 +1,10 @@
+const api = globalThis.browser ?? globalThis.chrome;
 
-const commandName = '_execute_browser_action';
+const commandName = '_execute_action';
 
 async function updateUI() {
-  let commands = await browser.commands.getAll();
-  for (command of commands) {
+  const commands = await api.commands.getAll();
+  for (const command of commands) {
     if (command.name === commandName) {
       document.querySelector('#shortcut').value = command.shortcut;
     }
@@ -11,18 +12,17 @@ async function updateUI() {
 }
 
 async function updateShortcut() {
-  await browser.commands.update({
+  await api.commands.update({
     name: commandName,
-    shortcut: document.querySelector('#shortcut').value
+    shortcut: document.querySelector('#shortcut').value,
   });
 }
 
 async function resetShortcut() {
-  await browser.commands.reset(commandName);
+  await api.commands.reset(commandName);
   updateUI();
 }
 
 document.addEventListener('DOMContentLoaded', updateUI);
-
-document.querySelector('#update').addEventListener('click', updateShortcut)
-document.querySelector('#reset').addEventListener('click', resetShortcut)
+document.querySelector('#update').addEventListener('click', updateShortcut);
+document.querySelector('#reset').addEventListener('click', resetShortcut);

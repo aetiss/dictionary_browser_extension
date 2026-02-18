@@ -4,33 +4,27 @@
     <meta charset="utf-8" />
     <title>Dictionary</title>
     <link rel="stylesheet" href="style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="heading" class="heading">
-      English Dictionary
+    <div class="search-container">
+      <input id="search" type="text" placeholder="Type a word..." autofocus />
     </div>
-    <div class="key-container" id="key-container">
-      <div id="keyword" class="keyword">
-        Keyword
+    <div id="result" class="result hidden">
+      <div class="word-header">
+        <span id="keyword" class="keyword"></span>
+        <span id="pos" class="pos"></span>
       </div>
-      <div id="pos" class="pos">
-        part of speech
+      <div id="text-result" class="text-result"></div>
+      <div class="footer">
+        <a href="#" id="source-link" target="_blank">Wiktionary</a>
+        <a href="#" id="optionsPage" target="_blank">Settings</a>
       </div>
-      <button class="sound-btn" id="sound-btn">
-        <img class="btn-img" src="../assets/icon_speaker.png">
-      </button>
-      <audio id="pronunciation" src="../assets/sorry001.wav"></audio>
     </div>
-    <div id="text-result" class="text-result spacer">
-      Searching...
+    <div id="empty-state" class="empty-state">
+      Double-click any word on a page, or type above.
     </div>
-    <div class="more-info">
-      <a href="#" id="optionsPage" target="_blank">Settings >></a>
-      <a href="#" id="merriam-link">More >></a>
-    </div>
+    <div id="error-state" class="error-state hidden"></div>
     <script src="util.js"></script>
     <script src="script.js"></script>
-    <script src="../config.js"></script>
   </body>
 </html>
